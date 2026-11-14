@@ -397,6 +397,8 @@ tr.sub td{font-weight:600;border-top:1px solid var(--axis)}
 .tgo{display:inline-block;margin-top:12px;font-size:12.5px;font-weight:600;color:#1c6fd1}
 h4.bh{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:24px;font-family:var(--fd);font-size:15.5px}h4.bh .muted{font-family:var(--fb);font-weight:400;font-size:12px}
 
+.cbt .cpc{display:inline-block;min-width:48px;margin-left:8px;font-size:11.5px;font-weight:600;color:var(--muted);text-align:right}.cbt .cpc.neg{color:var(--neg,#b3261e)}
+
 /* ===== phone layout ===== */
 .monly{display:none}
 @media (max-width:640px){
@@ -451,6 +453,7 @@ h4.bh{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:24px;fon
  .lg{gap:6px 12px;font-size:12px}
  .sidetools{padding-bottom:10px}
 }
+@media (max-width:700px){.cbt .cpc{display:block;margin:2px 0 0;min-width:0}.cbt th,.cbt td{padding-left:4px;padding-right:4px}.cbt td:first-child{max-width:92px}}
 /* ===== login & user access ===== */
 #login{position:fixed;inset:0;z-index:300;display:grid;place-items:center;padding:20px;overflow:auto;background:radial-gradient(110% 80% at 15% 0%,#1c4a3c 0%,#0e2a23 55%,#081a15 100%)}
 .lg-card{width:min(400px,100%);background:#fff;color:#12201b;border-radius:24px;padding:30px 28px 24px;box-shadow:0 30px 80px rgba(0,0,0,.4);display:flex;flex-direction:column}
@@ -2095,11 +2098,11 @@ function costBy(r,qs,m,price){const ck=OUT[r.outlet].concept;let food=0,pack=0;
  const cols=[{n:'Dine-in',pack:pack*(DINE_PACK[ck]||0),comm:0,promo:0},{n:'Takeaway',pack,comm:0,promo:0},{n:'Online (delivery apps)',pack,comm:(price-price*promo)*comm,promo:price*promo,on:1}];
  cols.forEach(c=>{c.base=food+c.pack;c.online=c.comm+c.promo;c.total=c.base+c.online;c.left=price-c.total});
  const line=(l,f,cls='')=>`<tr class="${cls}"><td>${l}</td>${cols.map(c=>`<td class="num ${c.on?'on':''}">${f(c)}</td>`).join('')}</tr>`;
- const z=v=>v?fmtM(v):'—';
- return `<h4>Cost by how it is sold <span class="muted">QAR per item at a price of ${fmtM(price)}</span></h4><div class="tbl small"><table class="cbt"><thead><tr><th></th>${cols.map(c=>`<th class="num ${c.on?'on':''}">${c.n}</th>`).join('')}</tr></thead><tbody>
- ${line('Food cost',c=>fmtM(food))}${line('Packaging cost',c=>z(c.pack))}${line('Total cost (food + packaging)',c=>fmtM(c.base),'sub')}
+ const pc=v=>`${fmtM(v)}<small class="cpc">${fmtP(v/price)}</small>`,z=v=>v?pc(v):'—';
+ return `<h4>Cost by how it is sold <span class="muted">QAR per item and % of the selling price of ${fmtM(price)}</span></h4><div class="tbl small"><table class="cbt"><thead><tr><th></th>${cols.map(c=>`<th class="num ${c.on?'on':''}">${c.n}</th>`).join('')}</tr></thead><tbody>
+ ${line('Food cost',c=>pc(food))}${line('Packaging cost',c=>z(c.pack))}${line('Total cost (food + packaging)',c=>pc(c.base),'sub')}
  ${line('Online commission',c=>z(c.comm))}${line('Online promo discount',c=>z(c.promo))}${line('Online cost',c=>z(c.online),'sub')}
- ${line('Total cost including online',c=>`<b>${fmtM(c.total)}</b>`,'tot')}${line('Cost % of price',c=>`<span class="${c.total/price>.6?'neg':''}">${fmtP(c.total/price)}</span>`)}${line('Left per item',c=>`<b class="${c.left<price*.25?'neg':'pos'}">${fmtM(c.left)}</b>`)}</tbody></table></div>
+ ${line('Total cost including online',c=>`<b>${fmtM(c.total)}</b><small class="cpc ${c.total/price>.6?'neg':''}">${fmtP(c.total/price)}</small>`,'tot')}${line('Left per item',c=>`<b class="${c.left<price*.25?'neg':'pos'}">${fmtM(c.left)}</b><small class="cpc">${fmtP(c.left/price)}</small>`)}</tbody></table></div>
  <p class="muted small">Online cost uses the sample delivery app terms for this brand: ${fmtP(comm)} commission and ${fmtP(promo)} promo discount on average. Dine-in packaging is the small share served in to-go packaging.</p>`}
 
 // ---------- mobile helpers ----------
