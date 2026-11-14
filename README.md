@@ -10,6 +10,7 @@ A single-page F&B cost control and analytics website for a multi-brand restauran
 - Recipe costing: food cost, packaging cost, total cost and online cost per item
 - Delivery and channels, packaging, purchasing (GRPO prices, suppliers, purchase loss)
 - Cost control: recipe variance, loss by product, wastage, stock counts, reconciliation
+- Cold drinks include ice cubes in their recipes
 - Users & access: sign-in screen, and an admin page to create users and choose the pages each one can open
 
 ## How to view

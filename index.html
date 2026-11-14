@@ -479,6 +479,7 @@ h4.bh{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:24px;fon
 .ua-btns{display:flex;gap:8px;margin-top:16px}.ua-btns .btn{padding:10px 20px;font-size:14px}
 .ua-note{margin:0;max-width:86ch;color:var(--ink2);font-size:13.5px;line-height:1.5}
 @media (max-width:700px){.ua-act{text-align:left;white-space:normal}.ua-act .btn{margin:4px 6px 0 0}.lg-card{padding:24px 20px 20px}}
+#replay,#intro{display:none!important}
 </style>
 </head>
 <body>
@@ -658,6 +659,7 @@ const SKU_RAW=[
 ['mango','Mango Pulp','Coffee & Beverage','kg',14,7,1,30,.05],
 ['softdrink','Soft Drink Can 330ml','Coffee & Beverage','can',2,7,1,270,.04],
 ['water','Still Water 500ml','Coffee & Beverage','btl',1.2,7,1,365,.02],
+['ice','Ice Cubes (food grade)','Coffee & Beverage','kg',0.9,7,1,30,.06],
 ['pack','Takeaway Meal Box Set','Packaging','pc',1.5,8,1,365,.06],
 ['cup_hot','Hot Cup & Lid','Packaging','pc',.45,8,1,365,.05],
 ['cup_cold','Cold Cup, Lid & Straw','Packaging','pc',.55,8,1,365,.05],
@@ -708,7 +710,7 @@ const MENU_RAW=[
  [G,'Sides','Saffron-Style Rice',12,0,500,[['rice',.12,.05],['butter',.005]],1],
  [G,'Sides','French Fries',12,0,600,[['fries',.2,.08],['fry_oil',.015,.1]],1],
  [G,'Sides','Grilled Corn on the Cob',12,0,250,[['corn',1],['butter',.01]],1],
- [G,'Drinks','Fresh Lemon Mint',18,'Fresh juices & smoothies',700,[['lemon',.1,.1],['mint',.01,.2],['honey',.01]]],
+ [G,'Drinks','Fresh Lemon Mint',18,'Fresh juices & smoothies',700,[['lemon',.1,.1],['mint',.01,.2],['honey',.01],['ice',.15,.1]]],
  [G,'Drinks','Laban Ayran',9,'Soft drinks & water',500,[['yogurt',.15,.05],['mint',.002]]],
  // ---- Green Bowl Kitchen ----
  [H,'Bowls','Grilled Chicken Quinoa Bowl',46,0,900,[['chk_breast',.15,.05],['quinoa',.08],['broccoli',.08,.08],['avocado',.05,.2],['dressing',.03],['pack',.5]]],
@@ -723,10 +725,10 @@ const MENU_RAW=[
  [H,'Breakfast','Overnight Oats with Berries',24,0,350,[['oats',.06],['milk',.12],['yogurt',.06],['berries',.05],['honey',.01],['chia',.005]]],
  [H,'Breakfast','Greek Yogurt Parfait',22,0,300,[['yogurt',.18,.05],['granola',.04],['berries',.05],['honey',.01]]],
  [H,'Sides','Baked Sweet Potato Fries',16,0,400,[['sweet_potato',.2,.08],['olive_oil',.01]],1],
- [H,'Juices & Smoothies','Green Detox Juice',24,'Fresh juices & smoothies',600,[['spinach',.06,.12],['cucumber',.1],['lemon',.04],['orange',.2,.15],['cup_cold',1]]],
- [H,'Juices & Smoothies','Berry Protein Smoothie',28,'Fresh juices & smoothies',500,[['berries',.12,.06],['banana',.1,.1],['yogurt',.1],['milk',.15],['cup_cold',1]]],
- [H,'Juices & Smoothies','Mango Smoothie',24,'Fresh juices & smoothies',400,[['mango',.15,.05],['yogurt',.08],['milk',.1],['cup_cold',1]]],
- [H,'Juices & Smoothies','Fresh Orange Juice',20,'Fresh juices & smoothies',500,[['orange',.5,.16],['cup_cold',1]]],
+ [H,'Juices & Smoothies','Green Detox Juice',24,'Fresh juices & smoothies',600,[['spinach',.06,.12],['cucumber',.1],['lemon',.04],['orange',.2,.15],['ice',0.08,.1],['cup_cold',1]]],
+ [H,'Juices & Smoothies','Berry Protein Smoothie',28,'Fresh juices & smoothies',500,[['berries',.12,.06],['banana',.1,.1],['yogurt',.1],['milk',.15],['ice',0.1,.1],['cup_cold',1]]],
+ [H,'Juices & Smoothies','Mango Smoothie',24,'Fresh juices & smoothies',400,[['mango',.15,.05],['yogurt',.08],['milk',.1],['ice',0.1,.1],['cup_cold',1]]],
+ [H,'Juices & Smoothies','Fresh Orange Juice',20,'Fresh juices & smoothies',500,[['orange',.5,.16],['ice',0.06,.1],['cup_cold',1]]],
  // ---- Roast & Brew ----
  [C,'Hot Coffee','Espresso',14,'Hot coffee',800,[['coffee_esp',.018,.08],['cup_hot',.5]]],
  [C,'Hot Coffee','Americano',16,'Hot coffee',1500,[['coffee_esp',.018,.07],['cup_hot',.8]]],
@@ -738,11 +740,11 @@ const MENU_RAW=[
  [C,'Hot Coffee','Mocha',24,'Hot coffee',700,[['coffee_esp',.018],['milk',.2,.1],['cocoa',.012],['choc_sauce',.02],['cup_hot',.8]]],
  [C,'Hot Coffee','Oat Milk Latte',25,'Hot coffee',500,[['coffee_esp',.018],['oat_milk',.22,.1],['cup_hot',.8]]],
  [C,'Hot Coffee','V60 Pour-Over (single origin)',26,'Hot coffee',700,[['coffee_so',.018,.1],['cup_hot',.5]]],
- [C,'Iced Coffee','Iced Latte',23,'Iced coffee',2400,[['coffee_esp',.018,.08],['milk',.2,.1],['cup_cold',1]]],
- [C,'Iced Coffee','Iced Spanish Latte',26,'Iced coffee',2200,[['coffee_esp',.018,.08],['milk',.18,.1],['syrup',.025,.1],['cup_cold',1]]],
- [C,'Iced Coffee','Iced Americano',18,'Iced coffee',900,[['coffee_esp',.018,.07],['cup_cold',1]]],
- [C,'Iced Coffee','Cold Brew',22,'Iced coffee',900,[['coffee_so',.025,.08],['cup_cold',1]]],
- [C,'Iced Coffee','Caramel Frappé',28,'Iced coffee',700,[['coffee_esp',.018],['milk',.15],['icecream',.08,.1],['syrup',.03,.1],['cream',.03],['cup_cold',1]]],
+ [C,'Iced Coffee','Iced Latte',23,'Iced coffee',2400,[['coffee_esp',.018,.08],['milk',.2,.1],['ice',0.15,.1],['cup_cold',1]]],
+ [C,'Iced Coffee','Iced Spanish Latte',26,'Iced coffee',2200,[['coffee_esp',.018,.08],['milk',.18,.1],['syrup',.025,.1],['ice',0.15,.1],['cup_cold',1]]],
+ [C,'Iced Coffee','Iced Americano',18,'Iced coffee',900,[['coffee_esp',.018,.07],['ice',0.18,.1],['cup_cold',1]]],
+ [C,'Iced Coffee','Cold Brew',22,'Iced coffee',900,[['coffee_so',.025,.08],['ice',0.15,.1],['cup_cold',1]]],
+ [C,'Iced Coffee','Caramel Frappé',28,'Iced coffee',700,[['coffee_esp',.018],['milk',.15],['icecream',.08,.1],['syrup',.03,.1],['cream',.03],['ice',0.2,.1],['cup_cold',1]]],
  [C,'Tea & More','Matcha Latte',26,'Tea, matcha & chocolate',600,[['matcha',.004,.1],['milk',.22,.1],['cup_hot',.8]]],
  [C,'Tea & More','Chai Latte',22,'Tea, matcha & chocolate',500,[['chai',.08,.06],['milk',.15],['cup_hot',.8]]],
  [C,'Tea & More','Hot Chocolate',20,'Tea, matcha & chocolate',400,[['cocoa',.025],['milk',.22,.1],['cup_hot',.8]]],
@@ -2162,7 +2164,7 @@ const AUTH={me:null,list:[],db:null,ref:null,shared:false,
   this.loadLocal();this.ready=this.initDb();const u=this.session(),x=u&&this.find(u);
   if(x&&x.active!==false){this.me=x;this.enter(false)}else this.showLogin();
   this.ready.then(()=>{if(!this.me)return;const y=this.find(this.me.u);if(!y||y.active===false){this.signOut();return}if(JSON.stringify(y)!==JSON.stringify(this.me)){this.me=y;paintNav();route()}})},
- enter(fresh){const l=document.getElementById('login');if(l)l.remove();paintNav();route();playIntro(false);if(fresh)toast('Signed in as '+this.me.name)},
+ enter(fresh){const l=document.getElementById('login');if(l)l.remove();paintNav();route();if(fresh)toast('Signed in as '+this.me.name)},
  signOut(){this.me=null;this.setSession(null);if(typeof closeDrawer==='function')closeDrawer();document.body.classList.remove('navopen');this.showLogin()},
  showLogin(){if(document.getElementById('login'))return;
   document.body.insertAdjacentHTML('beforeend',`<div id="login"><form class="lg-card" id="lgForm" autocomplete="on"><div class="lg-brand"><b>Anoop Group of Restaurants</b><span>Cost control &amp; analytics</span></div>
