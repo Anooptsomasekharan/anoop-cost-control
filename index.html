@@ -961,12 +961,14 @@ function storeAgg(m){
  return a;
 }
 
+const RIDER_BANDS=[{band:'0–3 km',share:.45,cost:5},{band:'3–6 km',share:.40,cost:7},{band:'6+ km',share:.15,cost:9.5}];
+const RIDER_AVG=RIDER_BANDS.reduce((a,b)=>a+b.share*b.cost,0);
 // ---- sales channels, delivery commissions & packaging split ----
 // Sample contract terms: replace with your own agreements.
 const CHANNELS=[
  {id:'dine',name:'Dine-in',type:'On-premise',comm:0,promo:.02,fee:0,rider:0,packW:0},
  {id:'take',name:'Takeaway',type:'Takeaway',comm:0,promo:.03,fee:0,rider:0,packW:1},
- {id:'own',name:'Own delivery (app & phone)',type:'Own delivery',comm:0,promo:.05,fee:.025,rider:6.5,packW:1.15},
+ {id:'own',name:'Own delivery (app & phone)',type:'Own delivery',comm:0,promo:.05,fee:.025,rider:RIDER_AVG,packW:1.15},
  {id:'appA',name:'Talabat',type:'Aggregator',comm:.21,promo:.08,fee:0,rider:0,packW:1.15},
  {id:'appB',name:'Keeta',type:'Aggregator',comm:.21,promo:.06,fee:0,rider:0,packW:1.15},
  {id:'appC',name:'Snoonu',type:'Aggregator',comm:.21,promo:.12,fee:0,rider:0,packW:1.15}
@@ -1260,7 +1262,9 @@ V['purchase-loss']=()=>{const m=STATE.m,st=storeAgg(m),sp=m?storeAgg(m-1):null;l
  ${kpi('Loss % of purchases',fmtP(st.ploss/st.purch,2),'')}${kpi('Year to date',fmtQ(ytd),'Nov-25 to '+MONTHS[m])}${kpi('Credit notes received',fmtQ(st.credit),'')}${kpi('Recoverable now',fmtQ(st.rej+st.short),'Claim from suppliers')}</div>
  <div class="grid">${card('Monthly purchase loss by type',chartBox('c_pl',260),{span:2})}
  ${card('Loss by supplier',tbl('t_pls'),{csv:'t_pls'})}${card('Loss by SKU',tbl('t_plk'),{csv:'t_plk'})}
- ${card('GRPO lines with a loss — '+MONTHS[m],tbl('t_pll'),{span:2,csv:'t_pll',sub:'Use this list to raise debit notes and claims'})}</div>`};
+ ${card('GRPO lines with a loss — '+MONTHS[m],tbl('t_pll'),{span:2,csv:'t_pll',sub:'Use this list to raise debit notes and claims'})}
+ ${card('Over-billed receipts to recover — '+MONTHS[m],tbl('t_ob'),{span:2,csv:'t_ob',sub:'Billed for goods not received, QAR 50 or more. Days open = days from receipt to month-end'})}
+ ${card('Rejected goods still awaiting credit note — '+MONTHS[m],tbl('t_nc'),{span:2,csv:'t_nc',sub:'Oldest first. Chase any open over 30 days'})}</div>`};
 V['purchase-loss'].after=()=>{const m=STATE.m;const S3=MONTHS.map((_,i)=>storeAgg(i));
  mk('c_pl',{type:'bar',data:{labels:MONTHS,datasets:[stackDS('Price above contract',S3.map(x=>x.dev),0),stackDS('Short delivery billed',S3.map(x=>x.short),1),stackDS('Rejected, no credit',S3.map(x=>x.rej),2)]},options:opts({stacked:true,legend:true})});
  const rec=RECEIPTS.filter(r=>r.m===m);
@@ -1269,6 +1273,10 @@ V['purchase-loss'].after=()=>{const m=STATE.m;const S3=MONTHS.map((_,i)=>storeAg
  const bySku=SKUS.map(s=>{const u=s.m[m];return{s,name:s.name,cat:s.cat,dev:u.dev,short:u.short,rej:u.rej,loss:u.plossV}}).filter(x=>x.loss>.5);
  renderTable('t_plk',[{k:'name',label:'SKU'},{k:'dev',label:'Price',num:1,fmt:fmtQ},{k:'short',label:'Short',num:1,fmt:fmtQ},{k:'rej',label:'Rejected',num:1,fmt:fmtQ},{k:'loss',label:'Total',num:1,fmt:fmtQ}],bySku,{sortKey:'loss',limit:10});
  const ls=rec.filter(r=>r.loss>.5).map(r=>Object.assign(r,{skuName:r.sku.name,supName:r.sup.name,type:[r.lossDev>.5?'Price':null,r.lossShort>0?'Short billed':null,r.lossRej>0?'No credit':null].filter(Boolean).join(' + ')}));
+ const ob=rec.filter(r=>r.lossShort>=50).map(r=>({no:r.no,sku:r.sku,supName:r.sup.name,skuName:r.sku.name,shortQ:r.shortQ,amt:r.lossShort,age:30-r.day})).sort((a,b)=>b.amt-a.amt);
+ renderTable('t_ob',[{k:'no',label:'GRPO no.'},{k:'supName',label:'Supplier'},{k:'skuName',label:'SKU'},{k:'shortQ',label:'Short qty',num:1,html:r=>r.shortQ?fmtQty(r.sku,r.shortQ):'—'},{k:'amt',label:'Over-billed',num:1,fmt:v=>fmtM(v)},{k:'age',label:'Days open',num:1,fmt:v=>v+' d'}],ob,{sortKey:'amt'});
+ const nc=rec.filter(r=>r.lossRej>0).map(r=>({no:r.no,sku:r.sku,supName:r.sup.name,skuName:r.sku.name,rej:r.rej,amt:r.lossRej,age:30-r.day})).sort((a,b)=>b.age-a.age);
+ renderTable('t_nc',[{k:'no',label:'GRPO no.'},{k:'supName',label:'Supplier'},{k:'skuName',label:'SKU'},{k:'rej',label:'Rejected qty',num:1,html:r=>r.rej?fmtQty(r.sku,r.rej):'—'},{k:'amt',label:'Owed',num:1,fmt:v=>fmtM(v)},{k:'age',label:'Days open',num:1,fmt:v=>v+' d'}],nc,{sortKey:'age'});
  renderTable('t_pll',[{k:'no',label:'GRPO no.'},{k:'date',label:'Date'},{k:'supName',label:'Supplier'},{k:'skuName',label:'SKU'},{k:'type',label:'Issue'},{k:'contract',label:'Contract',num:1,fmt:v=>fmtM(v)},{k:'inv',label:'Invoiced',num:1,fmt:v=>fmtM(v)},{k:'shortQ',label:'Short qty',num:1,html:r=>r.shortQ?fmtQty(r.sku,r.shortQ):'—'},{k:'rej',label:'Rejected qty',num:1,html:r=>r.rej?fmtQty(r.sku,r.rej):'—'},{k:'loss',label:'Loss',num:1,fmt:v=>fmtM(v)}],ls,{sortKey:'loss',limit:15});
 };
 
@@ -1331,7 +1339,7 @@ V['loss-products'].after=()=>{const m=STATE.m,L=lossBySku(m,STATE.o);const top=L
 
 V.wastage=()=>{const m=STATE.m,o=STATE.o;const W=WASTE.filter(w=>w.m===m&&(o==='all'||w.o===o)),P=m?WASTE.filter(w=>w.m===m-1&&(o==='all'||w.o===o)):null;const a=agg(o,m);
  const v=sum(W,w=>w.v),pv=P?sum(P,w=>w.v):null;const byR={};W.forEach(w=>byR[w.reason]=(byR[w.reason]||0)+w.v);const topR=Object.entries(byR).sort((a,b)=>b[1]-a[1])[0];
- return `<div class="kpis k4">${kpi('Wastage value',fmtQ(v),delta(v,pv,false),'hl')}${kpi('Wastage % of revenue',fmtP(v/a.rev,2),'Benchmark: under 2%')}${kpi('Entries logged',fmtN(W.length),outletNote())}${kpi('Top reason',topR?topR[0]:'—',topR?fmtQ(topR[1]):'')}</div>
+ return `<div class="kpis k4">${kpi('Wastage value',fmtQ(v),delta(v,pv,false),'hl')}${kpi('Wastage % of revenue',fmtP(v/a.rev,2),'Benchmark: under 2%')}${kpi('Entries logged',fmtN(W.length),outletNote())}${kpi('Top reason',topR?topR[0]:'—',Object.entries(byR).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]+' '+fmtQ(x[1])).join(' · '))}</div>
  <div class="grid">${card('Wastage by month',chartBox('c_wm',240),{sub:outletNote()})}${card('Wastage by reason — '+MONTHS[m],chartBox('c_wr',240))}
  ${card('Most wasted items — '+MONTHS[m],tbl('t_wi'),{span:2,csv:'t_wi',sub:'Recipes column shows where the item is used, so the chef knows which dish to fix'})}
  ${card('Wastage by outlet',chartBox('c_wo',260),{span:2})}${card('Wastage log — '+MONTHS[m],tbl('t_wl'),{span:2,csv:'t_wl'})}</div>`};
@@ -1795,6 +1803,7 @@ V.channels=()=>{const m=STATE.m,o=STATE.o,A=chAgg(o,m),T=chSum(A),P=m?chSum(chAg
  ${card('Channel profitability — '+MONTHS[m],splitLegend()+tbl('t_ch'),{span:2,csv:'t_ch',sub:'Commission and promo rates are sample contract terms. Replace them with your own delivery app agreements.'})}
  ${card('Commission paid by app',chartBox('c_comm',240),{sub:'QAR per month'})}${card('Delivery share of sales by outlet — '+MONTHS[m],chartBox('c_dsh',240),{sub:'Own delivery plus delivery apps'})}
  ${card('Delivery app pricing check — '+MONTHS[m],tbl('t_chi'),{span:2,csv:'t_chi',sub:'Items that earn far less on delivery apps than in the restaurant. “App price to match” is the app menu price that would earn the same QAR per item as dine-in. Click an item to open it.'})}
+ ${card('Own delivery rider cost by distance',`<div class="tw"><table class="rt"><thead><tr><th>Distance</th><th class="num">Share of orders</th><th class="num">Rider cost per order</th><th class="num">Adds to average</th></tr></thead><tbody>${RIDER_BANDS.map(b=>`<tr><td>${b.band}</td><td class="num">${fmtP(b.share,0)}</td><td class="num">QAR ${b.cost.toFixed(2)}</td><td class="num">QAR ${(b.share*b.cost).toFixed(2)}</td></tr>`).join('')}<tr class="tot"><td><b>Average per own-delivery order</b></td><td></td><td></td><td class="num"><b>QAR ${RIDER_AVG.toFixed(2)}</b></td></tr></tbody></table></div>`,{span:2,sub:'Sample distance mix and rider rates. Replace with your rider invoices.'})}
  ${card('Delivery by outlet — '+MONTHS[m],tbl('t_cho'),{span:2,csv:'t_cho'})}</div>`};
 V.channels.after=()=>{const m=STATE.m,o=STATE.o,A=chAgg(o,m),T=chSum(A);const H=MONTHS.map((_,i)=>chAgg(o,i));
  const act=A.filter(x=>x.gross>0);
