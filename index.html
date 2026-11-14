@@ -392,6 +392,11 @@ tr.sub td{font-weight:600;border-top:1px solid var(--axis)}
 .cbt td:first-child{white-space:nowrap}
 #rchan h4,#drchan h4{margin:16px 0 8px;font-size:14px;font-family:var(--fd)}#rchan h4 .muted,#drchan h4 .muted{font-family:var(--fb);font-weight:400;font-size:12px;margin-left:6px}
 
+.tclick{cursor:pointer;border-radius:14px;margin:-8px;padding:8px;transition:background .15s}
+.tclick:hover,.tclick:focus-visible{background:var(--sel);outline:0}
+.tgo{display:inline-block;margin-top:12px;font-size:12.5px;font-weight:600;color:#1c6fd1}
+h4.bh{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:24px;font-family:var(--fd);font-size:15.5px}h4.bh .muted{font-family:var(--fb);font-weight:400;font-size:12px}
+
 /* ===== phone layout ===== */
 .monly{display:none}
 @media (max-width:640px){
@@ -1578,13 +1583,13 @@ function openEntity(key,push=true){
  const [t,id]=key.split(':');const d=$('#drawer');
  if(push&&!d.hidden&&DSTACK.length&&DSTACK[DSTACK.length-1]!==key)DSTACK.push(key);else if(!DSTACK.length||d.hidden){DSTACK.length=0;DSTACK.push(key)}
  DCH.forEach(c=>c.destroy());DCH=[];
- const html=t==='sku'?productHTML(SKUS[+id]):t==='mi'?recipeHTML(MENU[+id]):t==='grpo'?grpoHTML(RECEIPTS[+id]):t==='sup'?supplierHTML(SUP[+id]):t==='kpi'?kpiHTML(id):'';
+ const html=t==='sku'?productHTML(SKUS[+id]):t==='mi'?recipeHTML(MENU[+id]):t==='grpo'?grpoHTML(RECEIPTS[+id]):t==='sup'?supplierHTML(SUP[+id]):t==='kpi'?kpiHTML(id):t==='tgt'?tgtHTML():'';
  $('#dbody').innerHTML=html;$('#dback').hidden=DSTACK.length<2;
  const wasHidden=d.hidden;d.hidden=false;$('#dscrim').hidden=false;document.body.classList.add('dopen');
  if(wasHidden&&MOTION.on){d.animate([{transform:'translateX(40px)',opacity:0},{transform:'none',opacity:1}],{duration:280,easing:'cubic-bezier(.2,.7,.1,1)'})}
  $('#dbody').scrollTop=0;
  const after=t==='sku'?productAfter:t==='mi'?recipeAfter:t==='grpo'?null:t==='sup'?supplierAfter:null;
- if(t==='kpi')kpiAfter(id);else if(after)after(t==='sku'?SKUS[+id]:t==='mi'?MENU[+id]:SUP[+id]);
+ if(t==='kpi')kpiAfter(id);else if(t==='tgt')tgtAfter();else if(after)after(t==='sku'?SKUS[+id]:t==='mi'?MENU[+id]:SUP[+id]);
  $('#dclose').focus({preventScroll:true});
 }
 function closeDrawer(){const d=$('#drawer');if(d.hidden)return;DCH.forEach(c=>c.destroy());DCH=[];DSTACK.length=0;d.hidden=true;$('#dscrim').hidden=true;document.body.classList.remove('dopen')}
@@ -1831,13 +1836,13 @@ V.ceo=()=>{
   kpi('Wastage value',fmtQ(wv),`${fmtP(wv/a.rev,2)} of sales · ${delta(wv,pwv,false)}`,'hl'),
   kpi('Total leakage',fmtQ(a.leak),`${fmtP(a.leak/a.rev)} of sales · ${delta(a.leak,p&&p.leak,false)}`)].join('');
  const tg=tgtOf(o,m),ach=C.gross/tg,ytdT=sum(MI(m+1),i=>tgtOf(o,i)),ytdA=sum(MI(m+1),i=>actOf(o,i)),hit=MONTHS.slice(0,m+1).filter((_,i)=>actOf(o,i)>=tgtOf(o,i)).length;
- const tstrip=`<div class="tgt"><div class="tgt-h"><div><span class="muted">Achievement</span><b>${fmtP(ach)}</b></div>${achPill(ach)}</div><div class="tgt-bar ${ach>=1?'ok':ach>=.95?'mid':'low'}"><i style="--w:${(Math.min(ach/1.2,1)*100).toFixed(1)}%"></i><em><small>Target</small></em></div>
-  <dl class="tgt-d"><div><dt>Sales target</dt><dd>${fmtQ(tg)}</dd></div><div><dt>Actual sales</dt><dd>${fmtQ(C.gross)}</dd></div><div><dt>${C.gross>=tg?'Ahead by':'Short by'}</dt><dd class="${C.gross>=tg?'pos':'neg'}">${fmtQ(Math.abs(C.gross-tg))}</dd></div><div><dt>Year to date</dt><dd>${fmtP(ytdA/ytdT)} <small class="muted">${fmtQ(ytdA)} of ${fmtQ(ytdT)}</small></dd></div><div><dt>Months on target</dt><dd>${hit} of ${m+1}</dd></div></dl></div>`;
+ const tstrip=`<div class="tgt tclick" data-tgt="1" tabindex="0" role="button" title="Click to see every brand and outlet"><div class="tgt-h"><div><span class="muted">Achievement</span><b>${fmtP(ach)}</b></div>${achPill(ach)}</div><div class="tgt-bar ${ach>=1?'ok':ach>=.95?'mid':'low'}"><i style="--w:${(Math.min(ach/1.2,1)*100).toFixed(1)}%"></i><em><small>Target</small></em></div>
+  <dl class="tgt-d"><div><dt>Sales target</dt><dd>${fmtQ(tg)}</dd></div><div><dt>Actual sales</dt><dd>${fmtQ(C.gross)}</dd></div><div><dt>${C.gross>=tg?'Ahead by':'Short by'}</dt><dd class="${C.gross>=tg?'pos':'neg'}">${fmtQ(Math.abs(C.gross-tg))}</dd></div><div><dt>Year to date</dt><dd>${fmtP(ytdA/ytdT)} <small class="muted">${fmtQ(ytdA)} of ${fmtQ(ytdT)}</small></dd></div><div><dt>Months on target</dt><dd>${hit} of ${m+1}</dd></div></dl><span class="tgo">See every brand and outlet ›</span></div>`;
  const kt=[kpi('Sales target',fmtQ(tg),MONTHS[m]+' · '+outletNote()),kpi('Actual sales',fmtQ(C.gross),delta(C.gross,CP&&CP.gross,true)),kpi('Achievement',fmtP(ach),achPill(ach)+` ${C.gross>=tg?'ahead by':'short by'} ${fmtQ(Math.abs(C.gross-tg))}`,'hl'),kpi('Year-to-date achievement',fmtP(ytdA/ytdT),`${fmtQ(ytdA)} of ${fmtQ(ytdT)} · ${hit} of ${m+1} months on target`)].join('');
  const pane=(k,h)=>`<section class="cpane" data-pane="${k}" ${tab===k?'':'hidden'}>${h}</section>`;
  return `<div class="ctabs" role="tablist">${CEO_TABS.map(([k,l])=>`<button class="ctab ${tab===k?'on':''}" role="tab" data-tab="${k}">${l}</button>`).join('')}</div>
  ${pane('overview',`<div class="kpis">${kp}</div><div class="grid">
-  ${card('Sales target — '+MONTHS[m],tstrip,{span:2,sub:outletNote()+' · the marker shows 100% of target'})}
+  ${card('Sales target — '+MONTHS[m],tstrip,{span:2,sub:outletNote()+' · the marker shows 100% of target · click the bar for brand and outlet details'})}
   ${card('Sales contribution: food, beverages and retail — '+MONTHS[m],tbl('t_cat'),{span:2,csv:'t_cat',sub:'Share of sales and contribution for each category, compared with '+(m?MONTHS[m-1]:'the previous month')})}
   ${card('Sales by brand — '+MONTHS[m],tbl('t_brand'),{span:2,csv:'t_brand',sub:'All brands in the group, compared with '+(m?MONTHS[m-1]:'the previous month')})}
   ${card('Sales by category',chartBox('c_catm',260),{sub:'Gross sales by month'})}
@@ -2043,7 +2048,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches&&e.
 // ---------- sales targets ----------
 const tgtOf=(o,m)=>o==='all'?sum(OUTLETS,x=>TARGET[x.id][m]):TARGET[o][m];
 const actOf=(o,m)=>o==='all'?sum(OUTLETS,x=>cS(x.id,m).gross):cS(o,m).gross;
-const achPill=a=>pill(a>=1?'good':a>=.95?'warn':'serious',a>=1?'Target met':a>=.95?'Close':'Below target');
+const achPill=a=>pill(a>=1?'good':a>=.95?'warn':'serious',a>=1?'Target met':a>=.95?'Near target':'Below target');
 const prog=a=>`<span class="prog ${a>=1?'ok':a>=.95?'mid':'low'}"><i style="width:${(Math.min(a/1.2,1)*100).toFixed(1)}%"></i><em></em></span>`;
 
 // ---------- recipe cost: food, packaging, total, online ----------
@@ -2067,6 +2072,28 @@ function costBy(r,qs,m,price){const ck=OUT[r.outlet].concept;let food=0,pack=0;
 // ---------- mobile helpers ----------
 document.addEventListener('click',e=>{const t=e.target;if(t.id==='mTheme')document.getElementById('theme').click();else if(t.id==='mMotion')document.getElementById('motionBtn').click();
  else if(document.body.classList.contains('navopen')&&!t.closest('#side')&&!t.closest('#menuBtn'))document.body.classList.remove('navopen')});
+
+// ---------- sales target: brands and outlets ----------
+function tRow(name,sub,os,m){const t=sum(os,x=>TARGET[x.id][m]),a=sum(os,x=>cS(x.id,m).gross),ms=Array.from({length:m+1},(_,i)=>i);
+ return{name,sub,t,a,ach:a/t,gap:a-t,ytd:sum(ms,i=>sum(os,x=>cS(x.id,i).gross))/sum(ms,i=>sum(os,x=>TARGET[x.id][i])),hit:ms.filter(i=>sum(os,x=>cS(x.id,i).gross)>=sum(os,x=>TARGET[x.id][i])).length}}
+const tCols=(k,m)=>[{k:'name',label:k,html:r=>`<b class="nw">${esc(r.name)}</b>${r.sub?`<small class="muted blk">${esc(r.sub)}</small>`:''}`},{k:'t',label:'Target',num:1,fmt:fmtQ},{k:'a',label:'Actual',num:1,fmt:fmtQ},{k:'ach',label:'Achievement',num:1,html:r=>`${prog(r.ach)} <b>${fmtP(r.ach)}</b>`},{k:'gap',label:'Ahead / short',num:1,html:r=>`<span class="${r.gap>=0?'pos':'neg'}">${r.gap>=0?'+':'−'}${fmtQ(Math.abs(r.gap))}</span>`},{k:'st',label:'Status',sv:r=>r.ach,html:r=>achPill(r.ach)},{k:'ytd',label:'Year to date',num:1,fmt:v=>fmtP(v)},{k:'hit',label:'Months on target',num:1,html:r=>r.hit+' of '+(m+1)}];
+function tgtHTML(){const m=STATE.m,g=tRow('Group','',OUTLETS,m);
+ return dhead('Sales target by brand and outlet',`${MONTHS[m]} · all brands and outlets in the group`,achPill(g.ach))+
+ `<div class="kpis k4 dk">${kpi('Group target',fmtQ(g.t),MONTHS[m])}${kpi('Group actual',fmtQ(g.a),'')}${kpi('Group achievement',fmtP(g.ach),(g.gap>=0?'Ahead by ':'Short by ')+fmtQ(Math.abs(g.gap)),'hl')}${kpi('Year to date',fmtP(g.ytd),g.hit+' of '+(m+1)+' months on target')}</div>
+ <h4>Achievement by outlet</h4>${chartBox('dc_tg',300)}<h4>By brand</h4><div class="tbl small" id="dt_tgb"></div>
+ ${Object.keys(CONCEPTS).map(ck=>{const os=OUTLETS.filter(o=>o.concept===ck),b=tRow('', '',os,m);return `<h4 class="bh">${esc(CONCEPTS[ck].name)} <span class="muted">${CONCEPTS[ck].desc} · ${fmtP(b.ach)} of target</span> ${achPill(b.ach)}</h4><div class="tbl small" id="dt_tg_${ck}"></div><div class="chart" style="height:170px"><canvas id="dc_tg_${ck}"></canvas></div>`}).join('')}`}
+function tgtAfter(){const m=STATE.m,cks=Object.keys(CONCEPTS);
+ const rows=OUTLETS.map(o=>({o,ach:cS(o.id,m).gross/TARGET[o.id][m]})).sort((a,b)=>b.ach-a.ach);
+ const ob=opts({horizontal:true,pct:true,tip:c=>' '+c.parsed.x.toFixed(1)+'% of target'});ob.scales.x.min=Math.floor(Math.min(80,...rows.map(r=>r.ach*100))/10)*10;
+ dk('dc_tg',{type:'bar',data:{labels:rows.map(r=>r.o.name),datasets:[{label:'Achievement',data:rows.map(r=>r.ach*100),backgroundColor:rows.map(r=>S(cks.indexOf(r.o.concept))),borderRadius:5,borderSkipped:'start',maxBarThickness:22}]},options:ob,
+  plugins:[{id:'t100',afterDatasetsDraw(ch){const x=ch.scales.x.getPixelForValue(100),a=ch.chartArea,c=ch.ctx;c.save();c.strokeStyle=cv('--ink');c.lineWidth=2;c.setLineDash([5,4]);c.beginPath();c.moveTo(x,a.top);c.lineTo(x,a.bottom);c.stroke();c.setLineDash([]);c.fillStyle=cv('--ink');c.font='600 11px '+Chart.defaults.font.family;c.textAlign='center';c.fillText('Target',x,a.top-4);c.restore()}}]});
+ const g=tRow('Group','',OUTLETS,m);
+ renderTable('dt_tgb',tCols('Brand',m),cks.map(ck=>{const os=OUTLETS.filter(x=>x.concept===ck);return tRow(CONCEPTS[ck].name,os.length+' outlet'+(os.length>1?'s':''),os,m)}),{sortKey:'ach',foot:{name:'Group',t:fmtQ(g.t),a:fmtQ(g.a),ach:fmtP(g.ach),gap:(g.gap>=0?'+':'−')+fmtQ(Math.abs(g.gap)),ytd:fmtP(g.ytd)}});
+ cks.forEach((ck,i)=>{const os=OUTLETS.filter(x=>x.concept===ck);renderTable('dt_tg_'+ck,tCols('Outlet',m),os.map(x=>tRow(x.name,'',[x],m)),{sortKey:'ach'});
+  dk('dc_tg_'+ck,{type:'bar',data:{labels:MONTHS,datasets:[{type:'line',label:'Target',data:MONTHS.map((_,mm)=>sum(os,x=>TARGET[x.id][mm])),borderColor:cv('--ink'),backgroundColor:cv('--ink'),borderWidth:1.5,borderDash:[5,4],pointRadius:0,order:0},barDS('Actual sales',MONTHS.map((_,mm)=>sum(os,x=>cS(x.id,mm).gross)),i,{backgroundColor:MONTHS.map((_,mm)=>mm===m?S(i):alpha(S(i),.4)),order:1})]},options:opts({legend:true})})});
+}
+document.addEventListener('click',e=>{if(e.target.closest('a,button'))return;if(e.target.closest('[data-tgt]'))openEntity('tgt:0')});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches&&e.target.matches('[data-tgt]'))openEntity('tgt:0')});
 
 // ================= SHELL =================
 const HELP={ceo:'The whole business on one page: sales, profit, customers and where money is lost. Use the sheets below to switch topic.',
