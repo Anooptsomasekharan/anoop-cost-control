@@ -451,12 +451,40 @@ h4.bh{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:24px;fon
  .lg{gap:6px 12px;font-size:12px}
  .sidetools{padding-bottom:10px}
 }
+/* ===== login & user access ===== */
+#login{position:fixed;inset:0;z-index:300;display:grid;place-items:center;padding:20px;overflow:auto;background:radial-gradient(110% 80% at 15% 0%,#1c4a3c 0%,#0e2a23 55%,#081a15 100%)}
+.lg-card{width:min(400px,100%);background:#fff;color:#12201b;border-radius:24px;padding:30px 28px 24px;box-shadow:0 30px 80px rgba(0,0,0,.4);display:flex;flex-direction:column}
+.lg-brand{border-left:4px solid #f2a516;padding-left:12px;margin-bottom:22px}.lg-brand b{display:block;font-family:var(--fd);font-size:19px;line-height:1.2}.lg-brand span{font-size:13px;color:#4a5852}
+.lg-card h2{font-family:var(--fd);font-size:30px;margin:0 0 14px;line-height:1.1}
+.lg-card label{font-size:13px;font-weight:600;margin:10px 0 5px;color:#12201b}
+.lg-card input:not([type=checkbox]){font:inherit;font-size:16px;width:100%;padding:12px 14px;border:1.5px solid #c6cec9;border-radius:12px;background:#fbfcfa;color:#12201b}
+.lg-card input:focus-visible,.ua-form input:focus-visible{outline:3px solid #f2a516;outline-offset:1px;border-color:#0e2a23}
+.lg-pw{position:relative}.lg-pw input{padding-right:70px!important}.lg-pw button{position:absolute;right:6px;top:6px;bottom:6px;border:0;background:#e9f2ed;color:#0e2a23;font:inherit;font-size:13px;font-weight:600;border-radius:8px;padding:0 12px;cursor:pointer}
+.lg-keep{display:flex!important;align-items:center;gap:8px;font-weight:500!important;margin-top:14px!important}.lg-keep input{width:18px;height:18px;accent-color:#0e2a23}
+.lg-err{margin:12px 0 0;padding:10px 12px;border-radius:10px;background:#fdecea;color:#8f1d12;font-size:13.5px}
+.lg-go{margin-top:18px;font:inherit;font-size:16px;font-weight:700;padding:13px;border:0;border-radius:12px;background:#f2a516;color:#12201b;cursor:pointer}.lg-go:hover{background:#ffb72e}.lg-go:disabled{opacity:.6;cursor:wait}
+.lg-foot{margin:14px 0 0;font-size:12.5px;color:#4a5852;text-align:center}
+#who{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:10px 14px 0;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.07)}#who:empty{display:none}
+.who-n{min-width:0}.who-n b{display:block;color:#fff;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.who-n span{font-size:11.5px;color:var(--sideMuted)}
+.ua-act{white-space:nowrap;text-align:right}.ua-act .btn{margin-left:6px}
+.btn.ua-save{background:var(--side);color:#fff;border-color:var(--side);font-weight:600}.btn.ua-danger{background:#b3261e;color:#fff;border-color:#b3261e}
+.ua-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:14px}
+.ua-form label{font-size:13px;font-weight:600;display:flex;flex-direction:column;gap:5px}
+.ua-form input:not([type=checkbox]){font:inherit;font-size:15px;padding:10px 12px;border:1.5px solid var(--axis);border-radius:10px;background:var(--surface);color:var(--ink)}
+.ua-form input:disabled{opacity:.6}.ua-form small{font-weight:400;color:var(--muted);font-size:12px}
+.ua-form label.ua-chk{flex-direction:row;align-items:center;gap:8px;font-weight:500;padding:5px 0}.ua-chk input{width:18px;height:18px;accent-color:var(--side);flex:none}
+.ua-ph{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin:14px 0 8px}.ua-ph .btn{margin-left:6px}
+.ua-pages{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.ua-pages fieldset{border:1px solid var(--border);border-radius:14px;padding:8px 14px 10px;margin:0;background:var(--surface)}.ua-pages legend{font-size:12px;font-weight:700;color:var(--ink2);padding:0 6px}
+.ua-btns{display:flex;gap:8px;margin-top:16px}.ua-btns .btn{padding:10px 20px;font-size:14px}
+.ua-note{margin:0;max-width:86ch;color:var(--ink2);font-size:13.5px;line-height:1.5}
+@media (max-width:700px){.ua-act{text-align:left;white-space:normal}.ua-act .btn{margin:4px 6px 0 0}.lg-card{padding:24px 20px 20px}}
 </style>
 </head>
 <body>
 <div class="app">
  <aside id="side"><div class="brand"><span id="brandLogo"></span><div><b>Anoop Group</b><span>Cost control &amp; analytics</span></div></div><nav id="nav"></nav>
-  <div class="sidetools"><label class="sbtn">Add your logo<input type="file" id="logoIn" accept="image/*" hidden></label><button class="sbtn" id="logoRemove" hidden>Remove logo</button><button class="sbtn" id="replay">Replay intro</button><button class="sbtn monly" id="mTheme">Light / Dark</button><button class="sbtn monly" id="mMotion">Motion on / off</button></div>
+  <div id="who"></div><div class="sidetools"><label class="sbtn">Add your logo<input type="file" id="logoIn" accept="image/*" hidden></label><button class="sbtn" id="logoRemove" hidden>Remove logo</button><button class="sbtn" id="replay">Replay intro</button><button class="sbtn monly" id="mTheme">Light / Dark</button><button class="sbtn monly" id="mMotion">Motion on / off</button></div>
   <div class="sidefoot"><b style="color:#fff">Illustrative sample data</b><br>5 brands · 8 outlets · QAR · Nov-25 to Oct-26</div></aside>
  <main>
   <header class="topbar"><button class="btn" id="menuBtn" aria-label="Menu">☰</button><div><h1 id="vtitle"></h1><div class="vsub" id="vsub"></div></div>
@@ -2095,6 +2123,112 @@ function tgtAfter(){const m=STATE.m,cks=Object.keys(CONCEPTS);
 document.addEventListener('click',e=>{if(e.target.closest('a,button'))return;if(e.target.closest('[data-tgt]'))openEntity('tgt:0')});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches&&e.target.matches('[data-tgt]'))openEntity('tgt:0')});
 
+// ================= LOGIN & USER ACCESS (screen lock; not a security boundary) =================
+function sha256(str){
+ const K=[],H=[];let n=2,c=0;const fr=x=>((x-Math.floor(x))*4294967296)|0;
+ while(c<64){let p=true;for(let i=2;i*i<=n;i++)if(n%i===0){p=false;break}if(p){if(c<8)H[c]=fr(Math.pow(n,.5));K[c++]=fr(Math.pow(n,1/3))}n++}
+ const b=Array.from(new TextEncoder().encode(str)),l=b.length*8;b.push(128);while(b.length%64!==56)b.push(0);
+ for(let i=7;i>=0;i--)b.push(i>3?0:(l>>>(i*8))&255);
+ const rr=(x,k)=>(x>>>k)|(x<<(32-k));const h=H.slice();
+ for(let o=0;o<b.length;o+=64){const w=[];for(let i=0;i<16;i++)w[i]=(b[o+i*4]<<24)|(b[o+i*4+1]<<16)|(b[o+i*4+2]<<8)|b[o+i*4+3];
+  for(let i=16;i<64;i++){const s0=rr(w[i-15],7)^rr(w[i-15],18)^(w[i-15]>>>3),s1=rr(w[i-2],17)^rr(w[i-2],19)^(w[i-2]>>>10);w[i]=(w[i-16]+s0+w[i-7]+s1)|0}
+  let [a,bb,cc,d,e,f,g,hh]=h;
+  for(let i=0;i<64;i++){const S1=rr(e,6)^rr(e,11)^rr(e,25),ch=(e&f)^(~e&g),t1=(hh+S1+ch+K[i]+w[i])|0,S0=rr(a,2)^rr(a,13)^rr(a,22),mj=(a&bb)^(a&cc)^(bb&cc),t2=(S0+mj)|0;
+   hh=g;g=f;f=e;e=(d+t1)|0;d=cc;cc=bb;bb=a;a=(t1+t2)|0}
+  [a,bb,cc,d,e,f,g,hh].forEach((v,i)=>h[i]=(h[i]+v)|0)}
+ return h.map(v=>(v>>>0).toString(16).padStart(8,'0')).join('')}
+const AUTH={me:null,list:[],db:null,ref:null,shared:false,
+ BUILTIN:{u:'admin',name:'Administrator',salt:'ag26',hash:'d3b7e78dbbbc2b647a05f0d944eca6d3fa1b4aa997386b0fb363582b1c1ca5d4',admin:true,active:true,pages:[]},
+ pagesAll(){return NAV.flatMap(g=>g.items.map(x=>x[0])).filter(k=>k!=='about'&&k!=='users')},
+ users(){const l=this.list.filter(x=>x&&x.u).map(x=>x.u==='admin'?Object.assign({},x,{admin:true,active:true}):x);return l.some(x=>x.u==='admin')?l:[this.BUILTIN].concat(l)},
+ find(u){u=String(u||'').trim().toLowerCase();return this.users().find(x=>x.u===u)},
+ allowed(k){const m=this.me;if(!m)return false;if(k==='about')return true;if(k==='users')return !!m.admin;return !!m.admin||(m.pages||[]).includes(k)},
+ pick(k){if(V[k]&&this.allowed(k))return k;return this.pagesAll().find(p=>V[p]&&this.allowed(p))||'about'},
+ loadLocal(){try{const j=JSON.parse(localStorage.getItem('cc-users')||'[]');if(Array.isArray(j))this.list=j}catch(e){}},
+ saveLocal(){try{localStorage.setItem('cc-users',JSON.stringify(this.list))}catch(e){}},
+ within(p,ms){return Promise.race([p,new Promise(r=>setTimeout(()=>r(undefined),ms))])},
+ async initDb(){try{if(!window.claude||typeof window.claude.use!=='function')return;const db=await this.within(window.claude.use('db'),8000);if(!db)return;
+   this.db=db;this.ref=db.doc('auth/users');const s=await this.within(this.ref.get(),8000);if(!s)return;this.shared=true;
+   if(s.exists){const d=s.data();if(d&&Array.isArray(d.list)){this.list=JSON.parse(JSON.stringify(d.list));this.saveLocal()}}}catch(e){}},
+ async save(){this.saveLocal();if(!this.ref)return false;try{await this.ref.set({list:JSON.parse(JSON.stringify(this.list))});this.shared=true;return true}catch(e){return false}},
+ session(){try{return sessionStorage.getItem('cc-user')||localStorage.getItem('cc-user')}catch(e){return null}},
+ setSession(u,keep){try{sessionStorage.removeItem('cc-user');localStorage.removeItem('cc-user');if(u)(keep?localStorage:sessionStorage).setItem('cc-user',u)}catch(e){}},
+ check(u,p){const x=this.find(u);return x&&x.active!==false&&sha256(x.salt+p)===x.hash?x:null},
+ mk(p){const salt=Math.random().toString(36).slice(2,10);return{salt,hash:sha256(salt+p)}},
+ start(){TITLES.users='Users & access';HELP.users='Create a username and password for each person and tick the pages they can open.';
+  this.loadLocal();this.ready=this.initDb();const u=this.session(),x=u&&this.find(u);
+  if(x&&x.active!==false){this.me=x;this.enter(false)}else this.showLogin();
+  this.ready.then(()=>{if(!this.me)return;const y=this.find(this.me.u);if(!y||y.active===false){this.signOut();return}if(JSON.stringify(y)!==JSON.stringify(this.me)){this.me=y;paintNav();route()}})},
+ enter(fresh){const l=document.getElementById('login');if(l)l.remove();paintNav();route();playIntro(false);if(fresh)toast('Signed in as '+this.me.name)},
+ signOut(){this.me=null;this.setSession(null);if(typeof closeDrawer==='function')closeDrawer();document.body.classList.remove('navopen');this.showLogin()},
+ showLogin(){if(document.getElementById('login'))return;
+  document.body.insertAdjacentHTML('beforeend',`<div id="login"><form class="lg-card" id="lgForm" autocomplete="on"><div class="lg-brand"><b>Anoop Group of Restaurants</b><span>Cost control &amp; analytics</span></div>
+   <h2>Sign in</h2>
+   <label for="lgU">Username</label><input id="lgU" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+   <label for="lgP">Password</label><div class="lg-pw"><input id="lgP" name="password" type="password" autocomplete="current-password" required><button type="button" id="lgShow">Show</button></div>
+   <label class="lg-keep"><input type="checkbox" id="lgKeep"> Keep me signed in on this device</label>
+   <p class="lg-err" id="lgErr" role="alert" hidden></p>
+   <button class="lg-go" id="lgGo">Sign in</button>
+   <p class="lg-foot">No account? Ask your administrator to create one for you.</p></form></div>`);
+  const f=$('#lgForm');$('#lgShow').onclick=()=>{const p=$('#lgP');p.type=p.type==='password'?'text':'password';$('#lgShow').textContent=p.type==='password'?'Show':'Hide'};
+  f.onsubmit=async e=>{e.preventDefault();const go=$('#lgGo'),er=$('#lgErr');er.hidden=true;go.disabled=true;go.textContent='Checking…';
+   await this.within(this.ready,6000);const x=this.check($('#lgU').value,$('#lgP').value);
+   if(x){this.me=x;this.setSession(x.u,$('#lgKeep').checked);this.enter(true)}
+   else{go.disabled=false;go.textContent='Sign in';er.textContent='Username or password is not correct. Check both and try again.';er.hidden=false;$('#lgP').select()}};
+  setTimeout(()=>{const u=$('#lgU');if(u)u.focus()},50)}
+};
+function paintNav(){
+ const groups=NAV.map(g=>({g:g.g,items:g.items.filter(x=>AUTH.allowed(x[0]))})).filter(g=>g.items.length);
+ if(AUTH.me&&AUTH.me.admin)groups.splice(groups.length-1,0,{g:'Admin',items:[['users','Users & access']]});
+ $('#nav').innerHTML='<span id="navInd" aria-hidden="true"></span>'+groups.map(g=>`<div class="ng">${g.g}</div>`+g.items.map(([k,t])=>`<a href="#${k}" data-k="${k}">${t}</a>`).join('')).join('');
+ const w=$('#who');if(w){w.innerHTML=AUTH.me?`<div class="who-n"><b>${esc(AUTH.me.name)}</b><span>${AUTH.me.admin?'Administrator':esc(AUTH.me.u)}</span></div><button class="sbtn" id="signOut">Sign out</button>`:'';const b=$('#signOut');if(b)b.onclick=()=>AUTH.signOut()}
+}
+const UE={edit:null,del:null};
+V.users=()=>{
+ if(!AUTH.allowed('users'))return card('Users & access','<p>Only the administrator can open this page.</p>');
+ const all=AUTH.pagesAll(),us=AUTH.users();
+ const rows=us.map(x=>`<tr><td data-label="Name"><b>${esc(x.name)}</b></td><td data-label="Username">${esc(x.u)}</td>
+  <td data-label="Access">${x.admin?'All pages and user management':(x.pages||[]).filter(p=>all.includes(p)).length+' of '+all.length+' pages'}</td>
+  <td data-label="Status">${x.active===false?pill('serious','Blocked'):pill('good','Active')}</td>
+  <td data-label="" class="ua-act"><button class="btn" data-ue="${esc(x.u)}">${x.admin?'Change password':'Edit'}</button>${x.admin?'':UE.del===x.u?`<button class="btn ua-danger" data-udel2="${esc(x.u)}">Confirm remove</button><button class="btn" data-ucancel="1">Keep</button>`:`<button class="btn" data-udel="${esc(x.u)}">Remove</button>`}</td></tr>`).join('');
+ let form='';
+ if(UE.edit){const neu=UE.edit==='new',x=neu?{u:'',name:'',pages:[],active:true}:AUTH.find(UE.edit)||{};const adm=!!x.admin;
+  form=card(neu?'New user':(adm?'Administrator account':'Edit '+esc(x.name)),`<form id="uForm" class="ua-form" autocomplete="off">
+   <div class="ua-grid"><label>Full name<input id="uName" value="${esc(x.name)}" required maxlength="40"></label>
+   <label>Username<input id="uUser" value="${esc(x.u)}" ${neu?'':'disabled'} required maxlength="24" autocapitalize="none" spellcheck="false"><small>Letters, numbers, dot, dash. No spaces.</small></label>
+   <label>${neu?'Password':'New password'}<input id="uPass" type="text" autocomplete="off" ${neu?'required':''} minlength="6" maxlength="40"><small>${neu?'At least 6 characters.':'Leave empty to keep the current password.'}</small></label></div>
+   ${adm?'':`<label class="ua-chk"><input type="checkbox" id="uActive" ${x.active===false?'':'checked'}> Active (untick to block this user without removing them)</label>
+   <div class="ua-ph"><b>Pages this user can open</b><span><button type="button" class="btn" id="uAll">Tick all</button><button type="button" class="btn" id="uNone">Clear all</button></span></div>
+   <div class="ua-pages">${NAV.filter(g=>g.g!=='Help').map(g=>`<fieldset><legend>${g.g}</legend>${g.items.map(([k,t])=>`<label class="ua-chk"><input type="checkbox" name="pg" value="${k}" ${(x.pages||[]).includes(k)?'checked':''}> ${t}</label>`).join('')}</fieldset>`).join('')}</div>`}
+   <p class="lg-err" id="uErr" role="alert" hidden></p>
+   <div class="ua-btns"><button class="btn ua-save">Save user</button><button type="button" class="btn" id="uCancel">Cancel</button></div></form>`,{span:2});}
+ return `<div class="grid">${card('Users',`<div class="tw"><table class="rt"><thead><tr><th>Name</th><th>Username</th><th>Access</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`,{span:2,sub:AUTH.shared?'Users are saved with this site, so they can sign in from any device.':'Users are saved on this device only. People on other devices cannot use them yet.',tools:UE.edit?'':'<button class="btn ua-save" id="uNew">Add user</button>'})}${form}
+ ${card('About this login','<p class="ua-note">This login is a lock on the screen. It keeps each person on the pages you allow, but it is not strong protection: the sample data is inside the page itself. Do not reuse a password that anyone uses for email or banking. Before real company data goes in, the site needs a proper login service.</p>',{span:2})}</div>`;
+};
+V.users.after=()=>{
+ const v=$('#view'),err=t=>{const e=$('#uErr');e.textContent=t;e.hidden=false};
+ const done=async msg=>{UE.edit=null;UE.del=null;const ok=await AUTH.save();if(AUTH.me)AUTH.me=AUTH.find(AUTH.me.u)||AUTH.me;paintNav();render();toast(ok||!AUTH.ref?msg:msg+' Saved on this device only: only the site owner can save for everyone.')};
+ v.onclick=e=>{const t=e.target.closest('button');if(!t)return;
+  if(t.id==='uNew'){UE.edit='new';render()}
+  else if(t.dataset.ue){UE.edit=t.dataset.ue;UE.del=null;render()}
+  else if(t.dataset.udel){UE.del=t.dataset.udel;render()}
+  else if(t.dataset.ucancel){UE.del=null;render()}
+  else if(t.dataset.udel2){const u=t.dataset.udel2;AUTH.list=AUTH.list.filter(x=>x.u!==u);done('User removed.')}
+  else if(t.id==='uCancel'){UE.edit=null;render()}
+  else if(t.id==='uAll'||t.id==='uNone'){v.querySelectorAll('input[name=pg]').forEach(c=>c.checked=t.id==='uAll')}};
+ const f=$('#uForm');if(!f)return;
+ f.onsubmit=e=>{e.preventDefault();const neu=UE.edit==='new',name=$('#uName').value.trim(),u=$('#uUser').value.trim().toLowerCase(),p=$('#uPass').value;
+  const old=neu?null:AUTH.find(UE.edit),adm=!!(old&&old.admin);
+  if(!name)return err('Enter the person’s full name.');
+  if(neu){if(!/^[a-z0-9._-]{3,24}$/.test(u))return err('Username needs 3 to 24 letters, numbers, dots or dashes, with no spaces.');if(AUTH.find(u))return err('That username is already taken. Choose another one.')}
+  if((neu||p)&&p.length<6)return err('Password needs at least 6 characters.');
+  const pages=adm?[]:[...v.querySelectorAll('input[name=pg]:checked')].map(c=>c.value);
+  if(!adm&&!pages.length)return err('Tick at least one page for this user.');
+  const rec=Object.assign({},old||{},{u:neu?u:old.u,name,pages,active:adm?true:$('#uActive').checked},(neu||p)?AUTH.mk(p):{});if(adm)rec.admin=true;
+  const i=AUTH.list.findIndex(x=>x.u===rec.u);if(i>=0)AUTH.list[i]=rec;else AUTH.list.push(rec);
+  done(neu?'User created. Give them the username and password.':'Changes saved.')};
+};
+
 // ================= SHELL =================
 const HELP={ceo:'The whole business on one page: sales, profit, customers and where money is lost. Use the sheets below to switch topic.',
  alerts:'Problems found this month, most urgent first. Click a row to open the screen where you can fix it.',
@@ -2125,13 +2259,12 @@ const NAV=[
 ];
 const TITLES={};NAV.forEach(g=>g.items.forEach(([k,t])=>TITLES[k]=t));
 function shell(){
- $('#nav').innerHTML=NAV.map(g=>`<div class="ng">${g.g}</div>`+g.items.map(([k,t])=>`<a href="#${k}" data-k="${k}">${t}</a>`).join('')).join('');
+ paintNav();
  $('#fm').innerHTML=MONTHS.map((x,i)=>`<option value="${i}" ${i===STATE.m?'selected':''}>${x}</option>`).join('');
  $('#fo').innerHTML=`<option value="all">All outlets</option>`+Object.keys(CONCEPTS).map(ck=>`<optgroup label="${CONCEPTS[ck].name}">`+OUTLETS.filter(o=>o.concept===ck).map(o=>`<option value="${o.id}">${o.name}</option>`).join('')+'</optgroup>').join('');
  $('#fm').onchange=e=>{STATE.m=+e.target.value;render()};$('#fo').onchange=e=>{STATE.o=e.target.value;render()};
  $('#theme').onclick=()=>{const d=document.documentElement;const cur=d.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');d.dataset.theme=cur==='dark'?'light':'dark';try{localStorage.setItem('cc-theme',d.dataset.theme)}catch(e){}render()};
  $('#menuBtn').onclick=()=>document.body.classList.toggle('navopen');
- $('#nav').insertAdjacentHTML('afterbegin','<span id="navInd" aria-hidden="true"></span>');
  $('#logoIn').onchange=e=>readLogo(e.target.files[0]);$('#logoRemove').onclick=()=>{setLogo(null);toast('Logo removed')};
  $('#replay').onclick=()=>playIntro(true);
  const mb=$('#motionBtn');const paintM=()=>{mb.textContent=MOTION.on?'Motion: on':'Motion: off';mb.setAttribute('aria-pressed',MOTION.on);document.documentElement.classList.toggle('still',!MOTION.on)};paintM();
@@ -2147,7 +2280,7 @@ function shell(){
  try{const t=localStorage.getItem('cc-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}
 }
 function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('on'),2200)}
-function route(){const k=(location.hash||'').slice(1);STATE.view=V[k]?k:'ceo';document.body.classList.remove('navopen');render()}
+function route(){const k=(location.hash||'').slice(1);if(!AUTH.me)return;STATE.view=AUTH.pick(k);if(k&&V[k]&&STATE.view!==k)toast('You do not have access to that page.');document.body.classList.remove('navopen');render()}
 function render(){transition(renderNow)}
 function renderNow(){
  if(typeof closeDrawer==='function'&&!$('#drawer').hidden)closeDrawer();
@@ -2159,7 +2292,7 @@ function renderNow(){
  $('#view').scrollTop=0;
  if(!introPlaying)countUp($('#view'));
 }
-shell();paintLogo();route();playIntro(false);
+shell();paintLogo();AUTH.start();
 </script>
 </body>
 </html>
