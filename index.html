@@ -2095,15 +2095,15 @@ function costFoot(r,qs,m){let food=0,pack=0;r.items.forEach((it,i)=>{const v=qs[
 function costBy(r,qs,m,price){const ck=OUT[r.outlet].concept;let food=0,pack=0;
  r.items.forEach((it,i)=>{const p=curPrice(it.sku,m);if(it.f)pack+=(qs[i]/it.f)*(it.per==='order'?1/PACK_IPO[ck]:1)*p;else food+=qs[i]/it.sku.yld*p});
  const apps=CHANNELS.map((c,i)=>({c,w:CH_MIX[ck][i]})).filter(x=>x.c.type==='Aggregator'),wt=sum(apps,x=>x.w),promo=sum(apps,x=>x.c.promo*x.w)/wt,comm=sum(apps,x=>x.c.comm*x.w)/wt;
- const cols=[{n:'Dine-in',pack:pack*(DINE_PACK[ck]||0),comm:0,promo:0},{n:'Takeaway',pack,comm:0,promo:0},{n:'Online (delivery apps)',pack,comm:(price-price*promo)*comm,promo:price*promo,on:1}];
+ const cols=[{n:'Dine-in',pack:pack*(DINE_PACK[ck]||0),comm:0,promo:0},{n:'Takeaway',pack,comm:0,promo:0},{n:'Online (delivery apps)',pack,comm:price*comm,promo:0,on:1}];
  cols.forEach(c=>{c.base=food+c.pack;c.online=c.comm+c.promo;c.total=c.base+c.online;c.left=price-c.total});
  const line=(l,f,cls='')=>`<tr class="${cls}"><td>${l}</td>${cols.map(c=>`<td class="num ${c.on?'on':''}">${f(c)}</td>`).join('')}</tr>`;
  const pc=v=>`${fmtM(v)}<small class="cpc">${fmtP(v/price)}</small>`,z=v=>v?pc(v):'—';
  return `<h4>Cost by how it is sold <span class="muted">QAR per item and % of the selling price of ${fmtM(price)}</span></h4><div class="tbl small"><table class="cbt"><thead><tr><th></th>${cols.map(c=>`<th class="num ${c.on?'on':''}">${c.n}</th>`).join('')}</tr></thead><tbody>
  ${line('Food cost',c=>pc(food))}${line('Packaging cost',c=>z(c.pack))}${line('Total cost (food + packaging)',c=>pc(c.base),'sub')}
- ${line('Online commission',c=>z(c.comm))}${line('Online promo discount',c=>z(c.promo))}${line('Online cost',c=>z(c.online),'sub')}
+ ${line('Online commission (online cost)',c=>z(c.comm),'sub')}
  ${line('Total cost including online',c=>`<b>${fmtM(c.total)}</b><small class="cpc ${c.total/price>.6?'neg':''}">${fmtP(c.total/price)}</small>`,'tot')}${line('Left per item',c=>`<b class="${c.left<price*.25?'neg':'pos'}">${fmtM(c.left)}</b><small class="cpc">${fmtP(c.left/price)}</small>`)}</tbody></table></div>
- <p class="muted small">Online cost uses the sample delivery app terms for this brand: ${fmtP(comm)} commission and ${fmtP(promo)} promo discount on average. Dine-in packaging is the small share served in to-go packaging.</p>`}
+ <p class="muted small">Online cost is the delivery app commission for this brand: ${fmtP(comm)} of the selling price. Promo discounts are not included here. Dine-in packaging is the small share served in to-go packaging.</p>`}
 
 // ---------- mobile helpers ----------
 document.addEventListener('click',e=>{const t=e.target;if(t.id==='mTheme')document.getElementById('theme').click();else if(t.id==='mMotion')document.getElementById('motionBtn').click();
