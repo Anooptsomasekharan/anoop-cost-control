@@ -1013,7 +1013,7 @@ CHECKS.forEach((c,i)=>{const [y,mm]=YM[c.m];c.no='CHK-'+String(y).slice(2)+Strin
 
 // ---- monthly sales targets per outlet (sample budget) ----
 const TARGET={};
-OUTLETS.forEach(o=>{const g=MONTHS.map((_,m)=>chSum(chAgg(o.id,m)).gross),base=sum(g.map((v,m)=>v/SEAS[m]))/NM;TARGET[o.id]=MONTHS.map((_,m)=>Math.round(base*SEAS[m]*(.965+.03*m/11)*rr(.97,1.05)/1000)*1000)});
+OUTLETS.forEach((o,oi)=>{const TF=[0.94,1.03,0.98,1.07,0.92,1.04,0.99,1.02][oi];const g=MONTHS.map((_,m)=>chSum(chAgg(o.id,m)).gross),base=sum(g.map((v,m)=>v/SEAS[m]))/NM;TARGET[o.id]=MONTHS.map((_,m)=>Math.round(base*SEAS[m]*(.965+.03*m/11)*TF*rr(.97,1.05)/1000)*1000)});
 
 if(typeof module!=="undefined")module.exports={CONCEPTS,SKUS,RECIPES,MENU,RM,WASTE,RECEIPTS,agg,storeAgg,OUTLETS,SUP,MONTHS,YM,CATS,BEV_CATS,targetOf,DATA_NOTE,CHANNELS,CH,chAgg,chSum,catAgg,EMP,CHECKS,TARGET};
 </script>
@@ -1131,8 +1131,11 @@ function buildAlerts(m){
   if(s.onTime<.88)add('warn','Supplier','Purchasing',`${s.name}: on-time delivery ${fmtP(s.onTime,0)} (target 95%)`,'purchasing',0);
   if(s.rejRate>.012)add('warn','Supplier','Purchasing',`${s.name}: quality rejections ${fmtP(s.rejRate)} of received qty`,'purchasing',0)});
  const pend=RECEIPTS.filter(r=>r.m===m&&r.lossRej>0);if(pend.length)add('serious','Credit notes','Purchasing',`${pend.length} rejected deliveries without credit note: ${fmtQ(sum(pend,r=>r.lossRej))} at risk`,'purchase-loss',sum(pend,r=>r.lossRej));
- recipeRows(m,'all').forEach(r=>{if(r.apct>r.target+.04)add(r.apct>r.target+.08?'crit':'serious','Recipe cost','Chef',`${r.name} (${r.outlet}): actual cost ${fmtP(r.apct)} vs target ${fmtP(r.target,0)}. Review portion and price`,'recipes',(r.apct-r.target)*r.rev);
-  if(r.varPct>.15)add('serious','Recipe variance','Cost Controller',`${r.r.label}: actual usage ${fmtD(r.varPct)} over theoretical (main driver: ${r.topSku.name})`,'variance',r.var)});
+ recipeRows(m,'all').forEach(r=>{const hc=r.apct>r.target+.04,hv=r.varPct>.15;if(!hc&&!hv)return;
+  const sev=(hc&&r.apct>r.target+.08)||(hv&&r.varPct>.3)?'crit':'serious';
+  const parts=[];if(hc)parts.push(`cost ${fmtP(r.apct)} vs target ${fmtP(r.target,0)}`);if(hv)parts.push(`usage ${fmtD(r.varPct)} over recipe, mainly ${r.topSku.name}`);
+  const act=hv&&hc?`check portion weight of ${r.topSku.name}, then re-price`:hv?`check portion weight of ${r.topSku.name} at the station`:'re-price or reduce the portion';
+  add(sev,'Recipe','Chef',`${r.name} (${r.outlet}): ${parts.join('; ')}. Action: ${act}`,hv?'variance':'recipes',Math.max(hc?(r.apct-r.target)*r.rev:0,hv?r.var:0))});
  SKUS.forEach(s=>{const u=s.m[m];const pct=u.shrinkQ/u.sysQ;if(pct>.03&&u.shrinkV>150)add(pct>.06?'crit':'serious','Stock count','Cost Controller',`${s.name}: count shortage ${fmtP(pct)} of system stock (${fmtQ(u.shrinkV)}). Investigate`,'inventory',u.shrinkV)});
  OUTLETS.forEach(o=>{const a=agg(o.id,m);if(a.pct>o.target/100)add(a.pct>o.target/100+.03?'crit':'serious','Outlet cost','Operations',`${o.name}: cost ${fmtP(a.pct)} vs target ${o.target}%`,'outlets',(a.pct-o.target/100)*a.rev)});
  skuStock(m).forEach(x=>{if(x.status==='Below par')add('warn','Stock level','Operations',`${x.s.name}: ${fmtQty(x.s,x.onHand)} ${x.s.unit} on hand, ${x.cover.toFixed(1)} days cover (par ${x.s.parDays} days). Reorder ${fmtQty(x.s,x.reorder)} ${x.s.unit}`,'sku-check',0);
