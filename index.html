@@ -1401,7 +1401,7 @@ V['sku-check'].after=()=>{const rows=skuStock(STATE.m);let f='All';
 };
 
 V.about=()=>`<div class="grid">${card('What this system covers','<div class="prose">'+[
- ['Dashboard','Sales targets and achievement by brand and outlet; click any total to see it by brand. Revenue, actual vs theoretical vs target cost %, food and beverage cost %, total leakage by source, outlet scorecard, top loss products and recipes, priority actions.'],
+ ['Leadership Summary','Sales targets and achievement by brand and outlet; click any total to see it by brand. Revenue, actual vs theoretical vs target cost %, food and beverage cost %, total leakage by source, outlet scorecard, top loss products and recipes, priority actions.'],
  ['Alerts & Actions','Rules run every month across all data and send each finding to an owner (Purchasing, Chef, Cost Controller, Operations), with the QAR value at stake.'],
  ['Purchase & Suppliers','Spend by category, GRPO counts, on-time delivery, fill rate, quality rejections, price compliance and a weighted supplier score.'],
  ['GRPO Price Tracker','Average price paid per SKU each month, compared with last month, 3 months ago, Nov-25 and the contract price, with a 12-month sparkline and every receipt line.'],
@@ -2087,7 +2087,7 @@ const HELP={ceo:'The whole business on one page: sales, profit, customers and wh
  menu:'Which items to keep, fix, promote or remove, and where each item’s selling price goes.',
  'sku-check':'Stock on hand against par level, with what to reorder and what to use first.'};
 const NAV=[
- {g:'Executive',items:[['ceo','Dashboard'],['alerts','Alerts & Actions']]},
+ {g:'Executive',items:[['ceo','Leadership Summary'],['alerts','Alerts & Actions']]},
  {g:'Purchasing',items:[['purchasing','Purchase & Suppliers'],['grpo','GRPO Price Tracker'],['purchase-loss','Purchase Loss']]},
  {g:'Cost Control',items:[['reconciliation','Food Cost Reconciliation'],['variance','Recipe Variance'],['loss-products','Loss by Product'],['wastage','Wastage Analysis'],['inventory','Stock Count Variance']]},
  {g:'Kitchen',items:[['recipes','Recipe Costing']]},
