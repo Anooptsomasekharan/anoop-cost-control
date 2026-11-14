@@ -964,9 +964,9 @@ const CHANNELS=[
  {id:'dine',name:'Dine-in',type:'On-premise',comm:0,promo:.02,fee:0,rider:0,packW:0},
  {id:'take',name:'Takeaway',type:'Takeaway',comm:0,promo:.03,fee:0,rider:0,packW:1},
  {id:'own',name:'Own delivery (app & phone)',type:'Own delivery',comm:0,promo:.05,fee:.025,rider:6.5,packW:1.15},
- {id:'appA',name:'Delivery App A',type:'Aggregator',comm:.30,promo:.08,fee:0,rider:0,packW:1.15},
- {id:'appB',name:'Delivery App B',type:'Aggregator',comm:.27,promo:.06,fee:0,rider:0,packW:1.15},
- {id:'appC',name:'Delivery App C',type:'Aggregator',comm:.22,promo:.12,fee:0,rider:0,packW:1.15}
+ {id:'appA',name:'Delivery App A',type:'Aggregator',comm:.21,promo:.08,fee:0,rider:0,packW:1.15},
+ {id:'appB',name:'Delivery App B',type:'Aggregator',comm:.21,promo:.06,fee:0,rider:0,packW:1.15},
+ {id:'appC',name:'Delivery App C',type:'Aggregator',comm:.21,promo:.12,fee:0,rider:0,packW:1.15}
 ];
 const CH_MIX={grill:[.42,.15,.08,.18,.11,.06],healthy:[.30,.15,.10,.22,.14,.09],coffee:[.58,.27,.02,.07,.04,.02],fastfood:[.25,.20,.08,.24,.15,.08],broasted:[.15,.25,.12,.25,.15,.08]};
 const ITEMS_PER_ORDER={grill:2.6,healthy:1.8,coffee:1.7,fastfood:2.8,broasted:2.4};
@@ -1778,7 +1778,7 @@ function appPricing(m,o){const map=new Map();recipesOf(o).forEach(r=>{let x=map.
 V.channels=()=>{const m=STATE.m,o=STATE.o,A=chAgg(o,m),T=chSum(A),P=m?chSum(chAgg(o,m-1)):null,dine=A[0];
  return `<div class="kpis">${kpi('Online delivery sales',fmtQ(T.delGross),delta(T.delGross,P&&P.delGross,true))}
  ${kpi('Delivery share of sales',fmtP(T.delGross/T.gross),P?ppDelta(T.delGross/T.gross,P.delGross/P.gross,true):'')}
- ${kpi('Commission paid to apps',fmtQ(T.appComm),`${fmtP(T.appComm/T.appGross)} of app sales · ${fmtP(T.appComm/T.gross)} of all sales`,'hl')}
+ ${kpi('Commission paid to apps',fmtQ(T.appComm),`${fmtP(T.appComm/((T.appGross-T.appDisc)||1))} of app sales after discounts · ${fmtP(T.appComm/T.gross)} of all sales`,'hl')}
  ${kpi('Promos funded on apps',fmtQ(T.appDisc),fmtP(T.appDisc/T.appGross)+' of app sales')}
  ${kpi('Delivery orders',fmtN(T.delOrders),'Average order QAR '+fmtM(T.delGross/T.delOrders))}
  ${kpi('Net margin: dine-in',fmtP(dine.contrib/dine.gross),'After food cost and discounts')}
@@ -1861,7 +1861,7 @@ V.ceo=()=>{
   kpi('Customers (checks)',fmtN(C.orders),delta(C.orders,CP&&CP.orders,true),'',H.map(h=>h.orders)),
   kpi('Average check value','QAR '+fmtM(net/C.orders),delta(net/C.orders,CP&&pnet/CP.orders,true),'',H.map(h=>h.avg)),
   kpi('Online sales',fmtQ(C.delGross),`${fmtP(C.delGross/C.gross)} of sales · ${delta(C.delGross,CP&&CP.delGross,true)}`,'',H.map(h=>h.del)),
-  kpi('Online commission',fmtQ(C.comm),`${fmtP(C.comm/C.delGross)} of online sales · ${delta(C.comm,CP&&CP.comm,false)}`,'',H.map(h=>h.comm)),
+  kpi('Online commission',fmtQ(C.comm),`${fmtP(C.appComm/((C.appGross-C.appDisc)||1))} on delivery apps, none on own app · ${delta(C.comm,CP&&CP.comm,false)}`,'',H.map(h=>h.comm)),
   kpi('Packaging cost',fmtQ(C.pack),`${fmtP(C.pack/C.gross,2)} of sales · ${delta(C.pack,CP&&CP.pack,false)}`,'',H.map(h=>h.pack))
  ].join('');
  const kc=[kpi('Cost of sales %',fmtP(a.pct),`Food ${fmtP(a.foodPct)} · Beverage ${a.bevRev?fmtP(a.bevPct):'n/a'}`),
@@ -1880,7 +1880,7 @@ V.ceo=()=>{
   ${card('Sales by brand — '+MONTHS[m],tbl('t_brand'),{span:2,csv:'t_brand',sub:'All brands in the group, compared with '+(m?MONTHS[m-1]:'the previous month')})}
   ${card('Sales by category',chartBox('c_catm',260),{sub:'Gross sales by month'})}
   ${card('From sales to net contribution — '+MONTHS[m],chartBox('c_pl',260),{sub:'What is left after discounts, commission, food cost and packaging'})}
-  ${card('Online sales and commission — '+MONTHS[m],tbl('t_onl'),{span:2,csv:'t_onl',sub:'Own delivery and delivery apps · <a href="#channels">all channels</a>'})}
+  ${card('Online sales and commission — '+MONTHS[m],tbl('t_onl'),{span:2,csv:'t_onl',sub:'Delivery apps pay commission on sales after discounts. Own delivery pays no commission, only rider and payment fees · <a href="#channels">all channels</a>'})}
   ${card('Customers and average check',chartBox('c_cust',240),{sub:'Number of checks per month (bars)'})}
   ${card('Average check value',chartBox('c_avg',240),{sub:'Net sales ÷ checks, QAR'})}</div>`)}
  ${pane('targets',`<div class="kpis k4">${kt}</div><div class="grid">
@@ -1924,9 +1924,9 @@ V.ceo.after=()=>{const m=STATE.m,o=STATE.o;
  mk('c_catm',{type:'bar',data:{labels:MONTHS,datasets:K.map((k,i)=>stackDS(KL[k],CM.map(x=>x[k].gross),i))},options:opts({stacked:true,legend:true})});
  const A=chAgg(o,m),T=chSum(A),PA=m?chAgg(o,m-1):null;
  bridge('c_pl',[['Gross sales',T.gross,'start'],['Discounts',-T.disc],['Commission',-(T.comm+T.fee+T.rider)],['Food cost',-T.food],['Packaging',-T.pack],['Net',0,'end']]);
- const on=A.map((x,i)=>({x,i})).filter(q=>(q.x.c.type==='Own delivery'||q.x.c.type==='Aggregator')&&q.x.gross>0).map(({x,i})=>({name:x.c.name,orders:x.orders,gross:x.gross,share:x.gross/T.gross,mom:PA&&PA[i].gross?(x.gross-PA[i].gross)/PA[i].gross:0,comm:x.comm+x.fee+x.rider,rate:(x.comm+x.fee+x.rider)/x.gross,pack:x.pack,contrib:x.contrib,nm:x.contrib/x.gross}));
- renderTable('t_onl',[{k:'name',label:'Online channel',html:r=>`<b>${r.name}</b>`},{k:'orders',label:'Orders',num:1,fmt:v=>fmtN(v)},{k:'gross',label:'Sales',num:1,fmt:fmtQ},{k:'share',label:'Share of all sales',num:1,html:r=>`${fmtP(r.share)} ${bar(r.share,.25)}`},{k:'mom',label:'vs last month',num:1,html:r=>dl(r.mom)},{k:'comm',label:'Commission & fees',num:1,fmt:fmtQ},{k:'rate',label:'% of its sales',num:1,fmt:v=>fmtP(v)},{k:'pack',label:'Packaging',num:1,fmt:fmtQ},{k:'contrib',label:'Net contribution',num:1,html:r=>`<b>${fmtQ(r.contrib)}</b>`},{k:'nm',label:'Net margin',num:1,fmt:v=>fmtP(v)}],on,{sortKey:'gross',
-  foot:{name:'Total online',orders:fmtN(sum(on,r=>r.orders)),gross:fmtQ(sum(on,r=>r.gross)),share:fmtP(sum(on,r=>r.share)),comm:fmtQ(sum(on,r=>r.comm)),rate:fmtP(sum(on,r=>r.comm)/sum(on,r=>r.gross)),pack:fmtQ(sum(on,r=>r.pack)),contrib:fmtQ(sum(on,r=>r.contrib)),nm:fmtP(sum(on,r=>r.contrib)/sum(on,r=>r.gross))}});
+ const on=A.map((x,i)=>({x,i})).filter(q=>(q.x.c.type==='Own delivery'||q.x.c.type==='Aggregator')&&q.x.gross>0).map(({x,i})=>({name:x.c.name,orders:x.orders,gross:x.gross,share:x.gross/T.gross,mom:PA&&PA[i].gross?(x.gross-PA[i].gross)/PA[i].gross:0,comm:x.comm,rate:x.comm/((x.gross-x.disc)||1),fees:x.fee+x.rider,pack:x.pack,contrib:x.contrib,nm:x.contrib/x.gross}));
+ renderTable('t_onl',[{k:'name',label:'Online channel',html:r=>`<b>${r.name}</b>`},{k:'orders',label:'Orders',num:1,fmt:v=>fmtN(v)},{k:'gross',label:'Sales',num:1,fmt:fmtQ},{k:'share',label:'Share of all sales',num:1,html:r=>`${fmtP(r.share)} ${bar(r.share,.25)}`},{k:'mom',label:'vs last month',num:1,html:r=>dl(r.mom)},{k:'comm',label:'Commission',num:1,html:r=>r.comm?fmtQ(r.comm):'<span class="muted">None</span>'},{k:'rate',label:'Commission rate',num:1,html:r=>r.comm?fmtP(r.rate):'<span class="muted">0%</span>'},{k:'fees',label:'Rider & payment fees',num:1,html:r=>r.fees?fmtQ(r.fees):'<span class="muted">None</span>'},{k:'pack',label:'Packaging',num:1,fmt:fmtQ},{k:'contrib',label:'Net contribution',num:1,html:r=>`<b>${fmtQ(r.contrib)}</b>`},{k:'nm',label:'Net margin',num:1,fmt:v=>fmtP(v)}],on,{sortKey:'gross',
+  foot:{name:'Total online',orders:fmtN(sum(on,r=>r.orders)),gross:fmtQ(sum(on,r=>r.gross)),share:fmtP(sum(on,r=>r.share)),comm:fmtQ(sum(on,r=>r.comm)),rate:'',fees:fmtQ(sum(on,r=>r.fees)),pack:fmtQ(sum(on,r=>r.pack)),contrib:fmtQ(sum(on,r=>r.contrib)),nm:fmtP(sum(on,r=>r.contrib)/sum(on,r=>r.gross))}});
  const HH=MONTHS.map((_,i)=>chSum(chAgg(o,i)));
  mk('c_cust',{type:'bar',data:{labels:MONTHS,datasets:[barDS('Customers (checks)',HH.map(h=>h.orders),0,{backgroundColor:monthColors(0)})]},options:opts({money:false})});
  mk('c_avg',{type:'line',data:{labels:MONTHS,datasets:[lineDS('Average check',HH.map(h=>(h.gross-h.disc)/h.orders),0)]},options:Object.assign(opts({tip:c=>' QAR '+fmtM(c.parsed.y)}),{scales:{x:{grid:{display:false}},y:{grid:{color:cv('--grid')},border:{display:false},ticks:{callback:v=>(+v).toFixed(1)}}}})});
