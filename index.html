@@ -2143,11 +2143,11 @@ function tgtAfter(){const m=STATE.m,cks=Object.keys(CONCEPTS);
 document.addEventListener('click',e=>{if(e.target.closest('a,button'))return;if(e.target.closest('[data-tgt]'))openEntity('tgt:0')});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches&&e.target.matches('[data-tgt]'))openEntity('tgt:0')});
 
-// ================= PROMOTIONS: top 5 items per brand, 10 / 30 / 50% levels, online and offline =================
-const PROMO_LEVELS=[.10,.30,.50],PROMO_GRP={online:[2,3,4,5],offline:[0,1]},PROMO_TOP=5;
+// ================= PROMOTIONS: top 5 items per brand and sales channel, 10 / 30 / 50% levels =================
+const PROMO_GRP={own:[2],talabat:[3],keeta:[4],snoonu:[5],offline:[0,1]},PROMO_NAME={own:'Online · Own delivery',talabat:'Online · Talabat',keeta:'Online · Keeta',snoonu:'Online · Snoonu',offline:'Offline · Dine-in + takeaway'},PROMO_ORDER=['own','talabat','keeta','snoonu','offline'],PROMO_LEVELS=[.10,.30,.50],PROMO_TOP=5;
 function promoItems(m){const map={};
  recipesOf('all').forEach(r=>{const ck=OUT[r.outlet].concept,ch=CH[r.i][m];
-  Object.keys(PROMO_GRP).forEach(g=>{const t={units:0,gross:0,disc:0,comm:0,fee:0,rider:0,pack:0,food:0};
+  PROMO_ORDER.forEach(g=>{const t={units:0,gross:0,disc:0,comm:0,fee:0,rider:0,pack:0,food:0};
    PROMO_GRP[g].forEach(i=>{const x=ch[i];Object.keys(t).forEach(k=>t[k]+=x[k]||0)});
    if(t.units<.5)return;
    const key=ck+'|'+r.name+'|'+g,a=map[key]||(map[key]={ck,name:r.name,g,units:0,gross:0,disc:0,comm:0,fee:0,rider:0,pack:0,food:0});
@@ -2157,17 +2157,17 @@ function promoItems(m){const map={};
   const cur=price-a.disc/a.units-(a.comm+a.fee+a.rider+a.pack+a.food)/a.units;
   const lv=PROMO_LEVELS.map(d=>{const np=price*(1-d),nn=np-np*rc-np*rf-fixed;return{d,price:np,net:nn,pct:np>0?(np-nn)/np:0}});
   return{ck:a.ck,name:a.name,g:a.g,units:a.units,plate,price,cur,curTot:cur*a.units,lv}})}
-V.promos=()=>{const m=STATE.m;return `<p class="lead">Each offer cuts the menu price for the selected month. Cost % is everything that leaves the price (food, packaging, commission, fees, rider) divided by the discounted price, the same way the recipe card works it out. Profit per item is what is left. Online = own delivery plus Talabat, Keeta and Snoonu; offline = dine-in and takeaway.</p>
- <div class="grid">${Object.keys(CONCEPTS).map(ck=>card(CONCEPTS[ck].name+' · top '+PROMO_TOP+' items · '+MONTHS[m],tbl('t_on_'+ck)+tbl('t_off_'+ck),{span:2,csv:'t_on_'+ck,sub:'Top items ranked by today’s profit in each channel. Online table first, offline below.'})).join('')}</div>`};
+V.promos=()=>{const m=STATE.m;return `<p class="lead">Each offer cuts the menu price for the selected month. Cost % is everything that leaves the price (food, packaging, commission, fees, rider) divided by the discounted price, the same way the recipe card works it out. Profit per item is what is left. Each platform is shown on its own, so you can see where a discount earns and where it loses money.</p>
+ <div class="grid">${Object.keys(CONCEPTS).map(ck=>card(CONCEPTS[ck].name+' · top '+PROMO_TOP+' items per channel · '+MONTHS[m],PROMO_ORDER.map(g=>`<h4 class="muted">${PROMO_NAME[g]}</h4>`+tbl('t_'+g+'_'+ck)).join(''),{span:2,csv:'t_own_'+ck,sub:'Items ranked by today’s profit within each channel.'})).join('')}</div>`};
 V.promos.after=()=>{const m=STATE.m,items=promoItems(m);
  const cols=[{k:'name',label:'Item'},{k:'units',label:'Units',num:1,fmt:v=>fmtN(v)},{k:'plate',label:'Plate cost',num:1,fmt:v=>fmtM(v)},{k:'price',label:'Price',num:1,fmt:v=>fmtM(v)},{k:'cur',label:'Profit / item',num:1,fmt:v=>fmtM(v)}];
  PROMO_LEVELS.forEach((d,li)=>{const L=Math.round(d*100)+'%';
-  cols.push({k:'p'+li,label:L+' off · price',num:1,fmt:v=>fmtM(v),sv:r=>r.lv[li].price});
-  cols.push({k:'c'+li,label:L+' off · cost %',num:1,fmt:v=>fmtP(v),sv:r=>r.lv[li].pct,html:r=>`<span class="${r.lv[li].pct>.75?'neg':''}">${fmtP(r.lv[li].pct)}</span>`});
-  cols.push({k:'n'+li,label:L+' off · profit / item',num:1,fmt:v=>fmtM(v),sv:r=>r.lv[li].net,html:r=>`<span class="${r.lv[li].net<=0?'neg':''}">${fmtM(r.lv[li].net)}</span>`})});
- Object.keys(CONCEPTS).forEach(ck=>['online','offline'].forEach(g=>{
+  cols.push({k:'p'+li,label:L+' off · price',num:1,fmt:v=>fmtM(v)});
+  cols.push({k:'c'+li,label:L+' off · cost %',num:1,fmt:v=>fmtP(v),html:r=>`<span class="${r.lv[li].pct>.75?'neg':''}">${fmtP(r.lv[li].pct)}</span>`});
+  cols.push({k:'n'+li,label:L+' off · profit / item',num:1,fmt:v=>fmtM(v),html:r=>`<span class="${r.lv[li].net<=0?'neg':''}">${fmtM(r.lv[li].net)}</span>`})});
+ Object.keys(CONCEPTS).forEach(ck=>PROMO_ORDER.forEach(g=>{
   const rows=items.filter(x=>x.ck===ck&&x.g===g).sort((a,b)=>b.curTot-a.curTot).slice(0,PROMO_TOP).map(x=>{const o={name:x.name,units:x.units,plate:x.plate,price:x.price,cur:x.cur,lv:x.lv};x.lv.forEach((z,li)=>{o['p'+li]=z.price;o['c'+li]=z.pct;o['n'+li]=z.net});return o});
-  renderTable((g==='online'?'t_on_':'t_off_')+ck,cols,rows,{})}))};
+  renderTable('t_'+g+'_'+ck,cols,rows,{})}))};
 
 // ================= LOGIN & USER ACCESS (screen lock; not a security boundary) =================
 function sha256(str){
