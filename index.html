@@ -2159,11 +2159,11 @@ function promoItems(m){const map={};
   const price=a.gross/a.units,base=a.gross-a.disc,rc=base>0?a.comm/base:0,rf=a.gross>0?a.fee/a.gross:0,fixed=(a.rider+a.pack+a.food)/a.units;
   const cur=price-a.disc/a.units-(a.comm+a.fee+a.rider+a.pack+a.food)/a.units;
   const lv=PROMO_LEVELS.map(d=>{const np=price*(1-d),nn=np-np*rc-np*rf-fixed;return{price:np,net:nn,mg:np>0?nn/np:0}});
-  return{ck:a.ck,name:a.name,g:a.g,units:a.units,price,cur,lv}})}
+  return{ck:a.ck,name:a.name,g:a.g,units:a.units,price,cur,comm:a.comm/a.units,lv}})}
 function promoVerdict(z){return z.net<=0?['crit','Don’t promote']:z.mg>=PROMO_MIN?['good','Promote']:['serious','Careful']}
 V.promos=()=>{const m=STATE.m;
  const sel=(id,opts,v)=>`<select id="${id}" class="inp" style="min-width:200px">${opts.map(([k,t])=>`<option value="${k}" ${String(k)===String(v)?'selected':''}>${t}</option>`).join('')}</select>`;
- return `<p class="lead">Pick a channel, a brand and a discount. Margin is what is left of the selling price after food, packaging, commission, fees and rider. Qty to cover is how many items you must sell at that discount to earn what you earn today. Promote = margin at least 25%. Careful = profitable but thin. Don’t promote = loses money.</p>
+ return `<p class="lead">Pick a channel, a brand and a discount. Cost includes food, packaging, commission, payment fee, rider and any promo discount already running; Commission / item shows the delivery-app share on its own. Margin is what is left of the selling price after all of these. Qty to cover is how many items you must sell at that discount to earn what you earn today. Promote = margin at least 25%. Careful = profitable but thin. Don’t promote = loses money.</p>
  <div style="display:flex;gap:16px;flex-wrap:wrap;margin:12px 0 18px">
   <label style="display:flex;flex-direction:column;gap:6px;font-weight:600">Channel ${sel('pf_ch',PROMO_CH,PR.ch)}</label>
   <label style="display:flex;flex-direction:column;gap:6px;font-weight:600">Brand ${sel('pf_b',[['all','All brands'],...Object.keys(CONCEPTS).map(k=>[k,CONCEPTS[k].name])],PR.b)}</label>
@@ -2176,9 +2176,9 @@ V.promos.after=()=>{const m=STATE.m,items=promoItems(m);
  $('#pf_lv').onchange=e=>{PR.lv=+e.target.value;V.promos.after()};
  const L=i=>Math.round(PROMO_LEVELS[i]*100)+'%';
  const rows=items.filter(x=>x.g===PR.ch&&(PR.b==='all'||x.ck===PR.b)).map(x=>{const z=x.lv[PR.lv],[lvl,txt]=promoVerdict(z);
-   const o={name:x.name,brand:CONCEPTS[x.ck].name,units:x.units,price:x.price,cost:x.price-x.cur,cp:(x.price-x.cur)/x.price,mg:x.cur/x.price,tot:z.net*x.units,v:[lvl,txt]};
+   const o={name:x.name,brand:CONCEPTS[x.ck].name,units:x.units,price:x.price,comm:x.comm,cost:x.price-x.cur,cp:(x.price-x.cur)/x.price,mg:x.cur/x.price,tot:z.net*x.units,v:[lvl,txt]};
    x.lv.forEach((q,li)=>{o['m'+li]=q.mg;o['q'+li]=q.net>0?Math.ceil(x.units*x.cur/q.net):null});return o}).sort((a,b)=>b.tot-a.tot);
- const cols=[{k:'name',label:'Item'},{k:'brand',label:'Brand'},{k:'units',label:'M/Qty',num:1,fmt:v=>fmtN(v)},{k:'price',label:'Selling price',num:1,fmt:v=>fmtM(v)},{k:'cost',label:'Cost',num:1,fmt:v=>fmtM(v)},{k:'cp',label:'Cost %',num:1,fmt:v=>fmtP(v)},{k:'mg',label:'Margin %',num:1,fmt:v=>fmtP(v),html:r=>`<span class="${r.mg<PROMO_MIN?'neg':''}">${fmtP(r.mg)}</span>`}];
+ const cols=[{k:'name',label:'Item'},{k:'brand',label:'Brand'},{k:'units',label:'M/Qty',num:1,fmt:v=>fmtN(v)},{k:'price',label:'Selling price',num:1,fmt:v=>fmtM(v)},{k:'comm',label:'Commission / item',num:1,fmt:v=>fmtM(v)},{k:'cost',label:'Cost (incl. commission)',num:1,fmt:v=>fmtM(v)},{k:'cp',label:'Cost %',num:1,fmt:v=>fmtP(v)},{k:'mg',label:'Margin %',num:1,fmt:v=>fmtP(v),html:r=>`<span class="${r.mg<PROMO_MIN?'neg':''}">${fmtP(r.mg)}</span>`}];
  PROMO_LEVELS.forEach((d,li)=>{cols.push({k:'m'+li,label:L(li)+'-Margin',num:1,fmt:v=>fmtP(v),html:r=>`<span class="${r['m'+li]<=0?'neg':''}">${fmtP(r['m'+li])}</span>`});
   cols.push({k:'q'+li,label:'Qty to cover '+L(li),num:1,fmt:v=>v==null?'—':fmtN(v),html:r=>r['q'+li]==null?'<span class="neg">Never</span>':fmtN(r['q'+li])})});
  cols.push({k:'v',label:'Verdict at '+L(PR.lv),html:r=>pill(r.v[0],r.v[1])});
