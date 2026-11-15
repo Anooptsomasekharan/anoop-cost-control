@@ -2143,6 +2143,34 @@ function tgtAfter(){const m=STATE.m,cks=Object.keys(CONCEPTS);
 document.addEventListener('click',e=>{if(e.target.closest('a,button'))return;if(e.target.closest('[data-tgt]'))openEntity('tgt:0')});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches&&e.target.matches('[data-tgt]'))openEntity('tgt:0')});
 
+// ================= PROMOTIONS: 10 / 30 / 50% offers, online and offline, by brand =================
+const PROMO_LEVELS=[.10,.30,.50],PROMO_MIN=.25,PROMO_GRP={online:[2,3,4,5],offline:[0,1]};
+function promoCalc(m){const out=[];
+ recipesOf('all').forEach(r=>{const ck=OUT[r.outlet].concept,ch=CH[r.i][m];
+  Object.keys(PROMO_GRP).forEach(g=>{const t={units:0,gross:0,disc:0,comm:0,fee:0,rider:0,pack:0,food:0};
+   PROMO_GRP[g].forEach(i=>{const x=ch[i];Object.keys(t).forEach(k=>t[k]+=x[k]||0)});
+   if(t.units<.5)return;
+   const price=t.gross/t.units,cur=(t.gross-t.disc-t.comm-t.fee-t.rider-t.pack-t.food)/t.units;
+   const base=t.gross-t.disc,rc=base>0?t.comm/base:0,rf=t.gross>0?t.fee/t.gross:0,fixed=(t.rider+t.pack+t.food)/t.units;
+   PROMO_LEVELS.forEach(d=>{const np=price*(1-d),nn=np-np*rc-np*rf-fixed;
+    out.push({ck,g,d,r,u:t.units,price:np,curTot:cur*t.units,newNet:nn,newTot:nn*t.units,newRev:np*t.units})})})});
+ return out}
+function promoSum(x){const s={u:0,cur:0,nw:0,rev:0};x.forEach(z=>{s.u+=z.u;s.cur+=z.curTot;s.nw+=z.newTot;s.rev+=z.newRev});return s}
+function promoPick(x,fn){const seen=new Set(),pick=[];x.slice().sort((a,b)=>b.newTot-a.newTot).forEach(z=>{if(pick.length<3&&!seen.has(z.r.name)&&fn(z)){seen.add(z.r.name);pick.push(z)}});return pick}
+V.promos=()=>{const m=STATE.m;return `<p class="lead">Each offer cuts the menu price by 10%, 30% or 50% for the selected month’s sales. Online = own delivery plus Talabat, Keeta and Snoonu. Offline = dine-in and takeaway. Commission and fees move with the discounted price; food and packaging per item do not.</p>
+ <div class="grid">${card('Promotion results by brand and channel — '+MONTHS[m],tbl('t_pr'),{span:2,csv:'t_pr',sub:'Extra sales needed = how much more volume is needed to earn the same total net as today'})}
+ ${card('Recipes to promote and recipes to avoid — '+MONTHS[m],tbl('t_ps'),{span:2,csv:'t_ps',sub:'Promote: best total net that still keeps at least 25% margin after the discount. Avoid: recipes that lose money or earn under 15% at that level'})}</div>`};
+V.promos.after=()=>{const m=STATE.m,rows=promoCalc(m),ck_=Object.keys(CONCEPTS);const res=[],sug=[];
+ ck_.forEach(ck=>Object.keys(PROMO_GRP).forEach(g=>PROMO_LEVELS.forEach(d=>{
+  const x=rows.filter(z=>z.ck===ck&&z.g===g&&z.d===d),s=promoSum(x);if(!s.u)return;
+  const net=s.nw/s.u,mg=s.rev>0?s.nw/s.rev:0,up=s.nw>0?s.cur/s.nw-1:Infinity;
+  res.push({b:CONCEPTS[ck].name,g:g==='online'?'Online':'Offline',d,u:s.u,net,mg,up,v:s.nw<=0?'Loses money':up<=0?'Profit holds at same sales':up>.5?'Risky: needs more sales than likely':'Pays back with more sales'});
+  const pr=promoPick(x,z=>z.newNet>0&&z.newNet/z.price>=PROMO_MIN);
+  const av=promoPick(x,z=>z.newNet/z.price<.15).map(z=>z.r.name);
+  sug.push({b:CONCEPTS[ck].name,g:g==='online'?'Online':'Offline',d,pick:pr,av})})));
+ renderTable('t_pr',[{k:'b',label:'Brand'},{k:'g',label:'Channel'},{k:'d',label:'Discount',num:1,fmt:v=>Math.round(v*100)+'%'},{k:'u',label:'Units',num:1,fmt:v=>fmtN(v)},{k:'net',label:'Net per item',num:1,fmt:v=>fmtM(v)},{k:'mg',label:'Net margin',num:1,fmt:v=>fmtP(v)},{k:'up',label:'Extra sales needed',num:1,html:r=>isFinite(r.up)?(r.up<=0?'None':'+'+fmtP(r.up,0)):'—'},{k:'v',label:'Verdict',html:r=>`<span class="${/Loses|Risky/.test(r.v)?'neg':''}">${r.v}</span>`}],res,{sortKey:'d'});
+ renderTable('t_ps',[{k:'b',label:'Brand'},{k:'g',label:'Channel'},{k:'d',label:'Discount',num:1,fmt:v=>Math.round(v*100)+'%'},{k:'pk',label:'Promote these',html:r=>r.pick.length?r.pick.map(z=>esc(z.r.name)+' <small class="muted">'+fmtP(z.newNet/z.price,0)+'</small>').join(' · '):'<span class="muted">None clears 25%</span>'},{k:'av',label:'Avoid at this level',html:r=>r.av.length?esc(r.av.join(' · ')):'<span class="muted">None</span>'}],sug,{sortKey:'d'})};
+
 // ================= LOGIN & USER ACCESS (screen lock; not a security boundary) =================
 function sha256(str){
  const K=[],H=[];let n=2,c=0;const fr=x=>((x-Math.floor(x))*4294967296)|0;
@@ -2273,7 +2301,7 @@ const NAV=[
  {g:'Cost Control',items:[['reconciliation','Food Cost Reconciliation'],['variance','Recipe Variance'],['loss-products','Loss by Product'],['wastage','Wastage Analysis'],['inventory','Stock Count Variance']]},
  {g:'Kitchen',items:[['recipes','Recipe Costing']]},
  {g:'Beverage',items:[['beverage','Beverage Sales']]},
- {g:'Sales channels',items:[['channels','Delivery & Channels'],['packaging','Packaging']]},
+ {g:'Sales channels',items:[['channels','Delivery & Channels'],['packaging','Packaging'],['promos','Promotions']]},
  {g:'Operations',items:[['outlets','Outlet Performance'],['menu','Menu Engineering'],['sku-check','SKU Stock Check']]},
  {g:'Help',items:[['about','How it works']]}
 ];
