@@ -8,7 +8,7 @@ A single-page F&B cost control and analytics website for a multi-brand restauran
 - Leadership Summary: gross and net sales, net contribution, customers, average check, sales targets by brand and outlet
 - Menu engineering: where each item's selling price goes (food, packaging, commission, promos, net)
 - Recipe costing: food cost, packaging cost, total cost and online cost per item
-- Promotions: top 5 items per brand and per sales channel (own delivery, Talabat, Keeta, Snoonu, offline) at 10%, 30% and 50% off: price, cost % and profit per item
+- Promotions: pick channel, brand and discount (10%, 30%, 50%) to see which items to promote online, with profit after discount and a Promote, Careful or Don’t promote verdict
 - Delivery and channels, packaging, purchasing (GRPO prices, suppliers, purchase loss)
 - Cost control: recipe variance, loss by product, wastage, stock counts, reconciliation
 - Cold drinks include ice cubes in their recipes

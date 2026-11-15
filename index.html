@@ -2143,31 +2143,39 @@ function tgtAfter(){const m=STATE.m,cks=Object.keys(CONCEPTS);
 document.addEventListener('click',e=>{if(e.target.closest('a,button'))return;if(e.target.closest('[data-tgt]'))openEntity('tgt:0')});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches&&e.target.matches('[data-tgt]'))openEntity('tgt:0')});
 
-// ================= PROMOTIONS: top 5 items per brand and sales channel, 10 / 30 / 50% levels =================
-const PROMO_GRP={own:[2],talabat:[3],keeta:[4],snoonu:[5],offline:[0,1]},PROMO_NAME={own:'Online · Own delivery',talabat:'Online · Talabat',keeta:'Online · Keeta',snoonu:'Online · Snoonu',offline:'Offline · Dine-in + takeaway'},PROMO_ORDER=['own','talabat','keeta','snoonu','offline'],PROMO_LEVELS=[.10,.30,.50],PROMO_TOP=5;
+// ================= PROMOTIONS: one filtered table: pick channel, brand and discount level =================
+const PROMO_GRP={own:[2],talabat:[3],keeta:[4],snoonu:[5],online:[2,3,4,5],offline:[0,1]},
+ PROMO_CH=[['online','All online'],['own','Own delivery'],['talabat','Talabat'],['keeta','Keeta'],['snoonu','Snoonu'],['offline','Offline (dine-in + takeaway)']],
+ PROMO_LEVELS=[.10,.30,.50],PROMO_MIN=.25,PROMO_ROWS=25;
+let PR={ch:'online',b:'all',lv:0};
 function promoItems(m){const map={};
  recipesOf('all').forEach(r=>{const ck=OUT[r.outlet].concept,ch=CH[r.i][m];
-  PROMO_ORDER.forEach(g=>{const t={units:0,gross:0,disc:0,comm:0,fee:0,rider:0,pack:0,food:0};
+  Object.keys(PROMO_GRP).forEach(g=>{const t={units:0,gross:0,disc:0,comm:0,fee:0,rider:0,pack:0,food:0};
    PROMO_GRP[g].forEach(i=>{const x=ch[i];Object.keys(t).forEach(k=>t[k]+=x[k]||0)});
    if(t.units<.5)return;
    const key=ck+'|'+r.name+'|'+g,a=map[key]||(map[key]={ck,name:r.name,g,units:0,gross:0,disc:0,comm:0,fee:0,rider:0,pack:0,food:0});
    Object.keys(t).forEach(k=>a[k]+=t[k])})});
  return Object.values(map).map(a=>{
-  const price=a.gross/a.units,base=a.gross-a.disc,rc=base>0?a.comm/base:0,rf=a.gross>0?a.fee/a.gross:0,fixed=(a.rider+a.pack+a.food)/a.units,plate=(a.pack+a.food)/a.units;
+  const price=a.gross/a.units,base=a.gross-a.disc,rc=base>0?a.comm/base:0,rf=a.gross>0?a.fee/a.gross:0,fixed=(a.rider+a.pack+a.food)/a.units;
   const cur=price-a.disc/a.units-(a.comm+a.fee+a.rider+a.pack+a.food)/a.units;
-  const lv=PROMO_LEVELS.map(d=>{const np=price*(1-d),nn=np-np*rc-np*rf-fixed;return{d,price:np,net:nn,pct:np>0?(np-nn)/np:0}});
-  return{ck:a.ck,name:a.name,g:a.g,units:a.units,plate,price,cur,curTot:cur*a.units,lv}})}
-V.promos=()=>{const m=STATE.m;return `<p class="lead">Each offer cuts the menu price for the selected month. Cost % is everything that leaves the price (food, packaging, commission, fees, rider) divided by the discounted price, the same way the recipe card works it out. Profit per item is what is left. Each platform is shown on its own, so you can see where a discount earns and where it loses money.</p>
- <div class="grid">${Object.keys(CONCEPTS).map(ck=>card(CONCEPTS[ck].name+' · top '+PROMO_TOP+' items per channel · '+MONTHS[m],PROMO_ORDER.map(g=>`<h4 class="muted">${PROMO_NAME[g]}</h4>`+tbl('t_'+g+'_'+ck)).join(''),{span:2,csv:'t_own_'+ck,sub:'Items ranked by today’s profit within each channel.'})).join('')}</div>`};
+  const lv=PROMO_LEVELS.map(d=>{const np=price*(1-d),nn=np-np*rc-np*rf-fixed;return{price:np,net:nn,mg:np>0?nn/np:0}});
+  return{ck:a.ck,name:a.name,g:a.g,units:a.units,price,cur,lv}})}
+function promoVerdict(z){return z.net<=0?['crit','Don’t promote']:z.mg>=PROMO_MIN?['good','Promote']:['serious','Careful']}
+V.promos=()=>{const m=STATE.m;
+ const sel=(id,opts,v)=>`<select id="${id}" class="inp">${opts.map(([k,t])=>`<option value="${k}" ${String(k)===String(v)?'selected':''}>${t}</option>`).join('')}</select>`;
+ return `<p class="lead">Pick a channel, a brand and a discount. The table shows which items still make money at that discount. <b>Promote</b> = profit is at least 25% of the discounted price. <b>Careful</b> = still profitable, but thin. <b>Don’t promote</b> = loses money.</p>
+ <div class="pfilt">
+  <label>Channel ${sel('pf_ch',PROMO_CH,PR.ch)}</label>
+  <label>Brand ${sel('pf_b',[['all','All brands'],...Object.keys(CONCEPTS).map(k=>[k,CONCEPTS[k].name])],PR.b)}</label>
+  <label>Discount ${sel('pf_lv',PROMO_LEVELS.map((d,i)=>[i,Math.round(d*100)+'% off']),PR.lv)}</label>
+ </div>
+ ${card('Items to promote · '+MONTHS[m],tbl('t_pr'),{span:2,csv:'t_pr',sub:'Sorted by total profit after the discount (units sold × profit per item). Top '+PROMO_ROWS+' shown.'})}`};
 V.promos.after=()=>{const m=STATE.m,items=promoItems(m);
- const cols=[{k:'name',label:'Item'},{k:'units',label:'Units',num:1,fmt:v=>fmtN(v)},{k:'plate',label:'Plate cost',num:1,fmt:v=>fmtM(v)},{k:'price',label:'Price',num:1,fmt:v=>fmtM(v)},{k:'cur',label:'Profit / item',num:1,fmt:v=>fmtM(v)}];
- PROMO_LEVELS.forEach((d,li)=>{const L=Math.round(d*100)+'%';
-  cols.push({k:'p'+li,label:L+' off · price',num:1,fmt:v=>fmtM(v)});
-  cols.push({k:'c'+li,label:L+' off · cost %',num:1,fmt:v=>fmtP(v),html:r=>`<span class="${r.lv[li].pct>.75?'neg':''}">${fmtP(r.lv[li].pct)}</span>`});
-  cols.push({k:'n'+li,label:L+' off · profit / item',num:1,fmt:v=>fmtM(v),html:r=>`<span class="${r.lv[li].net<=0?'neg':''}">${fmtM(r.lv[li].net)}</span>`})});
- Object.keys(CONCEPTS).forEach(ck=>PROMO_ORDER.forEach(g=>{
-  const rows=items.filter(x=>x.ck===ck&&x.g===g).sort((a,b)=>b.curTot-a.curTot).slice(0,PROMO_TOP).map(x=>{const o={name:x.name,units:x.units,plate:x.plate,price:x.price,cur:x.cur,lv:x.lv};x.lv.forEach((z,li)=>{o['p'+li]=z.price;o['c'+li]=z.pct;o['n'+li]=z.net});return o});
-  renderTable('t_'+g+'_'+ck,cols,rows,{})}))};
+ const ids=['pf_ch','pf_b','pf_lv'];const bind=()=>{$('#pf_ch').onchange=e=>{PR.ch=e.target.value;V.promos.after()};$('#pf_b').onchange=e=>{PR.b=e.target.value;V.promos.after()};$('#pf_lv').onchange=e=>{PR.lv=+e.target.value;V.promos.after()}};
+ bind();
+ const rows=items.filter(x=>x.g===PR.ch&&(PR.b==='all'||x.ck===PR.b)).map(x=>{const z=x.lv[PR.lv],[lvl,txt]=promoVerdict(z);
+   return{name:x.name,brand:CONCEPTS[x.ck].name,units:x.units,cur:x.cur,price:z.price,net:z.net,mg:z.mg,tot:z.net*x.units,v:[lvl,txt]}}).sort((a,b)=>b.tot-a.tot).slice(0,PROMO_ROWS);
+ renderTable('t_pr',[{k:'name',label:'Item'},{k:'brand',label:'Brand'},{k:'units',label:'Units',num:1,fmt:v=>fmtN(v)},{k:'cur',label:'Profit today / item',num:1,fmt:v=>fmtM(v)},{k:'price',label:'Price after discount',num:1,fmt:v=>fmtM(v)},{k:'net',label:'Profit after discount / item',num:1,fmt:v=>fmtM(v),html:r=>`<span class="${r.net<=0?'neg':''}">${fmtM(r.net)}</span>`},{k:'mg',label:'Margin after discount',num:1,fmt:v=>fmtP(v),html:r=>fmtP(r.mg)},{k:'tot',label:'Total profit after discount',num:1,fmt:v=>fmtM(v),html:r=>`<span class="${r.tot<=0?'neg':''}">${fmtM(r.tot)}</span>`},{k:'v',label:'Verdict',html:r=>pill(r.v[0],r.v[1])}],rows,{sortKey:'tot'})};
 
 // ================= LOGIN & USER ACCESS (screen lock; not a security boundary) =================
 function sha256(str){
